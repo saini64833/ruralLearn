@@ -1,7 +1,6 @@
 import connectionDB from "./db/index.js";
 import dotenv from "dotenv";
 import { app } from "./app.js";
-import { error } from "console";
 dotenv.config({ path: "./.env" });
 
 connectionDB()
