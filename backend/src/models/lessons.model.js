@@ -23,8 +23,8 @@ const lessonsSchema = new Schema(
       required: true,
     },
     videoUrl: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Video",
+      type:String,//cloudinary
+      required:true
     },
     pdfUrl: {
       type: String, //cloudinary

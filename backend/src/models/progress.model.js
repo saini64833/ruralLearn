@@ -59,16 +59,5 @@ const progressSchema = new Schema(
   { timestamps: true }
 );
 
-progressSchema.pre("save", function (next) {
-  if (this.lessonsCompleted.length || this.quizzesAttempted.length) {
-    const totalLessons = this.lessonsCompleted.length;
-    const avgQuizScore =
-      this.quizzesAttempted.reduce((sum, q) => sum + q.percentage, 0) /
-        this.quizzesAttempted.length || 0;
-    const lessonPercentage = totalLessons > 0 ? 100 : 0;
-    this.overallPercentage = lessonPercentage * 0.5 + avgQuizScore * 0.5;
-  }
-  next();
-});
 
 export const Progress = mongoose.model("Progress", progressSchema);
