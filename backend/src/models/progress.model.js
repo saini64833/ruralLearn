@@ -20,10 +20,6 @@ const progressSchema = new Schema(
           type: Date,
           default: Date.now,
         },
-        isCompleted: {
-          type: Boolean,
-          default: true,
-        },
       },
     ],
 
@@ -33,14 +29,6 @@ const progressSchema = new Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "QuizeResult",
           required: true,
-        },
-        percentage: {
-          type: Number,
-          required: true,
-        },
-        isCompleted: {
-          type: Boolean,
-          default: true,
         },
         completedAt: {
           type: Date,
