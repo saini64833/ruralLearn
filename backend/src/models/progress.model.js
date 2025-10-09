@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const progressSchema = new Schema(
   {
-    student: {
+    studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -46,6 +46,4 @@ const progressSchema = new Schema(
   },
   { timestamps: true }
 );
-
-
 export const Progress = mongoose.model("Progress", progressSchema);
