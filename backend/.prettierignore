@@ -1,6 +1,9 @@
-/.vscode
-/node_modules
-,/dist
-*.env
+node_modules
+dist
+build
+coverage
+public
 .env
-.env.*
+.env.local
+package-lock.json
+pnpm-lock.yaml

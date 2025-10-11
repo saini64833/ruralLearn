@@ -1,6 +1,6 @@
 import express from "express";
 import cros from "cors";
-import cookieParser from "cookie-parser"
+import cookieParser from "cookie-parser";
 const app = express();
 app.use(
   cros({
@@ -13,5 +13,9 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 
 app.use(cookieParser());
+
+import router from "./routes/user.route.js";
+
+app.use("api/v1/users", router);
 
 export { app };
