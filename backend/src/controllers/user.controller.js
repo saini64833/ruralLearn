@@ -2,6 +2,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -28,6 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
   console.log("password:", password);
   console.log("fullName:", fullName);
   console.log("userName:", userName);
+  console.log("role:", role);
   if (
     [fullName, userName, email, password, role, grade, school].some((field) => field?.trim() === "")
   ) {
@@ -120,4 +122,42 @@ const logOutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User successfully loged out"));
 });
 
-export { registerUser, loginUser, logOutUser };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "refreshToken expired!!");
+  }
+
+  try {
+    const decodedRefreshToken = jwt.verify(incomingRefreshToken, process.env.REFERESH_TOKEN_SECRET);
+    const user = await User.findById(decodedRefreshToken._id);
+    if (!user) {
+      throw new ApiError(401, "invailid refreshToken!!");
+    }
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "rfresh token expired or used");
+    }
+    const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id);
+    return res
+      .status(200)
+      .cookie("refreshToken", newRefreshToken, option)
+      .cookie("accessToken", accessToken, option)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            refreshToken: newRefreshToken,
+            accessToken,
+          },
+          "successfully refreshToken is refreshed"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "refreshToken is invailid");
+  }
+});
+
+
+
+export { registerUser, loginUser, logOutUser, refreshAccessToken };
