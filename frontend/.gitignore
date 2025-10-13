@@ -1,0 +1,107 @@
+# ----------------------------------------
+# 🚫 Node & Dependencies
+# ----------------------------------------
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# ----------------------------------------
+# 🏗️ Build Outputs
+# ----------------------------------------
+dist/
+build/
+.cache/
+.vite/
+vite.config.ts.timestamp-*
+
+# ----------------------------------------
+# ⚙️ Environment Files
+# ----------------------------------------
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ----------------------------------------
+# 💅 IDE / Editor Files
+# ----------------------------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------
+# 🧪 Testing
+# ----------------------------------------
+coverage/
+jest-html-reporters-*.html
+
+# ----------------------------------------
+# 📦 Logs & Temp
+# ----------------------------------------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+*.tmp
+*.temp
+
+# ----------------------------------------
+# 📸 Miscellaneous
+# ----------------------------------------
+*.local
+*.env.backup
+*.bak
+*.old
+
+# ----------------------------------------
+# 🖼️ Cache and OS files
+# ----------------------------------------
+*.cache
+*.log
+*.pid
+*.seed
+*.pid.lock
+*.tar.gz
+*.zip
+
+# ----------------------------------------
+# 🧱 Vite Specific
+# ----------------------------------------
+.vite/
+vite-env.d.ts
+
+# ----------------------------------------
+# 📱 PWA / Service Worker builds
+# ----------------------------------------
+workbox-*.js
+service-worker.js.map
+
+# ----------------------------------------
+# 📸 Uploaded Assets (optional)
+# ----------------------------------------
+public/uploads/
+assets/screenshots/
+assets/architecture/
+
+# ----------------------------------------
+# 🔐 Sensitive Data
+# ----------------------------------------
+*.pem
+*.key
+*.crt
+*.pfx
+
+# ----------------------------------------
+# 🧩 Custom Config
+# ----------------------------------------
+# Uncomment if using local Tailwind cache
+# .tailwindcache/
