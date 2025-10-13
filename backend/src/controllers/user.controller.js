@@ -177,4 +177,14 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   )
 });
 
-export { registerUser, loginUser, logOutUser, refreshAccessToken,changeCurrentPassword};
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new Apiresponse(200,req.user, "current user fatched successfully"));
+});
+
+const updateProfile=asyncHandler(async(req,res)=>{
+  const{email,fullName,grade,school}=req.body
+})
+
+export { registerUser, loginUser, logOutUser, refreshAccessToken,changeCurrentPassword,updateProfile};
