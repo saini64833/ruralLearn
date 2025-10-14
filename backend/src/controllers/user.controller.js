@@ -35,20 +35,20 @@ const registerUser = asyncHandler(async (req, res) => {
   console.log("userName:", userName);
   console.log("role:", role);
   if (
-    [fullName, userName, email, password, role,].some(
+    [fullName, userName, email, password, role].some(
       (field) => field?.trim() === ""
     )
   ) {
     throw new ApiError(400, "All Field Are Required!");
   }
-  if(role==="Student"){
-    if([school,grade].some((field)=>field?.trim==="")){
-      throw new ApiError(401,"school and grade required for Student")
+  if (role === "Student") {
+    if ([school, grade].some((field) => field?.trim === "")) {
+      throw new ApiError(401, "school and grade required for Student");
     }
   }
-  if(role==="Teacher"){
-    if(!school){
-      throw new ApiError(401,"school and required for Teacher")
+  if (role === "Teacher") {
+    if (!school) {
+      throw new ApiError(401, "school and required for Teacher");
     }
   }
   const existedUser = await User.findOne({
@@ -57,7 +57,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(400, "User allready exist!!");
   }
-  console.log(req.file)
+  console.log(req.file);
   const avatarLocalPath = await req.file?.path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "avtar local path required!!");
@@ -90,9 +90,9 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { userName, email, password } = req.body;
   if (!(userName || email)) {
-    throw new ApiError(400, "email,password and username equired");
+    throw new ApiError(400, "email and username required");
   }
-  console.log(userName)
+  console.log(userName);
   const user = await User.findOne({
     $or: [{ email }, { userName }],
   });
@@ -153,7 +153,8 @@ const logOutUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+  const incomingRefreshToken =
+    req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!incomingRefreshToken) {
     throw new ApiError(401, "refreshToken expired!!");
@@ -242,47 +243,48 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     );
 });
 
-const deleteAndUpdateAvtar = asyncHandler(async (req, res) => {
+const deleteAndUpdateAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(400, "User does not exist");
+  }
+  if (!user.avatar) {
+    throw new ApiError(400, "User does not have an avatar to delete");
+  }
+
   const extractPublicIdFromUrl = (url) => {
     const match = url.match(/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/);
     return match ? match[1] : null;
   };
-  const avatarLocalPath = req.file?.path;
-  if (!avatarLocalPath) {
-    throw new ApiError(401, "avtar file path is required!!");
-  }
-  const user = await User.findById(req.user._id);
-  if (!user) {
-    throw new ApiError(401, "user does not exist ");
-  }
-  if (!user.avatar) {
-    throw new ApiError(401, "avtar url does not have in database");
-  }
-  const publicId = await extractPublicIdFromUrl(user.avatar?.url);
 
+  const publicId = extractPublicIdFromUrl(user.avatar);
   if (!publicId) {
-    throw new ApiError(401, "did not define publicId ");
+    throw new ApiError(400, "Invalid avatar URL, cannot extract publicId");
   }
+
   await deleteFromCloudinary(publicId);
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-  if (!avatar.url) {
-    throw new ApiError(401, "new avtar url is required");
+  if (!req.file || !req.file.path) {
+    throw new ApiError(400, "New avatar file is required");
   }
-  user.avatar = avatar.url;
 
+  const avatar = await uploadOnCloudinary(req.file.path);
+  if (!avatar?.url) {
+    throw new ApiError(500, "Failed to upload new avatar");
+  }
+
+  user.avatar = avatar.url;
   await user.save({ validateBeforeSave: false });
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        user,
-        "user avatar is deleted and updated successfully!!"
-      )
-    );
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      user,
+      "User avatar deleted and updated successfully"
+    )
+  );
 });
+
 export {
   registerUser,
   loginUser,
@@ -291,5 +293,5 @@ export {
   getCurrentUser,
   changeCurrentPassword,
   updateAccountDetails,
-  deleteAndUpdateAvtar,
+  deleteAndUpdateAvatar,
 };

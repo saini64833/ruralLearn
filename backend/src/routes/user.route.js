@@ -10,7 +10,7 @@ import {
   changeCurrentPassword,
   updateAccountDetails,
   getCurrentUser,
-  deleteAndUpdateAvtar,
+  deleteAndUpdateAvatar,
 } from "../controllers/user.controller.js";
 
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -30,6 +30,6 @@ router.route("/change-password").post(verifyJwt, changeCurrentPassword);
 router.route("/me").get(verifyJwt, getCurrentUser);
 router.route("/account-detail-update").put(verifyJwt, updateAccountDetails);
 
-router.route("/update-avtar").put(verifyJwt,deleteAndUpdateAvtar)
+router.route("/update-avatar").put(verifyJwt,upload.single("avatar"),deleteAndUpdateAvatar)
 
 export default router;
