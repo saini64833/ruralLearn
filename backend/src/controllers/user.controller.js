@@ -35,11 +35,21 @@ const registerUser = asyncHandler(async (req, res) => {
   console.log("userName:", userName);
   console.log("role:", role);
   if (
-    [fullName, userName, email, password, role, grade, school].some(
+    [fullName, userName, email, password, role,].some(
       (field) => field?.trim() === ""
     )
   ) {
     throw new ApiError(400, "All Field Are Required!");
+  }
+  if(role==="Student"){
+    if([school,grade].some((field)=>field?.trim==="")){
+      throw new ApiError(401,"school and grade required for Student")
+    }
+  }
+  if(role==="Teacher"){
+    if(!school){
+      throw new ApiError(401,"school and required for Teacher")
+    }
   }
   const existedUser = await User.findOne({
     $or: [{ email }, { userName }],
@@ -47,7 +57,8 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(400, "User allready exist!!");
   }
-  const avatarLocalPath = await req.files?.avatar?.[0]?.path;
+  console.log(req.file)
+  const avatarLocalPath = await req.file?.path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "avtar local path required!!");
   }
@@ -77,15 +88,16 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { userName, email, password, role } = req.body;
-  if (!(userName || email || role)) {
-    throw new ApiError(400, "email,role and username equired");
+  const { userName, email, password } = req.body;
+  if (!(userName || email)) {
+    throw new ApiError(400, "email,password and username equired");
   }
+  console.log(userName)
   const user = await User.findOne({
-    $or: [{ email }, { role }, { userName }],
+    $or: [{ email }, { userName }],
   });
   if (!user) {
-    throw new ApiError(400, "User does not exist!!");
+    throw new ApiError(400, "User resistration required");
   }
 
   const isPasswordVailid = await user.isPasswordCorrect(password);
