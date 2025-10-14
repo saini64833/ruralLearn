@@ -51,6 +51,10 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!avatarLocalPath) {
     throw new ApiError(400, "avtar local path required!!");
   }
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  if (!avatar.secure_url) {
+    throw new ApiError(401, "avatar is required!!");
+  }
   const user = await User.create({
     password,
     fullName,
@@ -59,7 +63,7 @@ const registerUser = asyncHandler(async (req, res) => {
     role,
     grade,
     school,
-    avatar: avatar.url,
+    avatar: avatar.secure_url,
   });
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -239,7 +243,7 @@ const deleteAndUpdateAvtar = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(401, "user does not exist ");
   }
-  if (!user.avatar.url) {
+  if (!user.avatar) {
     throw new ApiError(401, "avtar url does not have in database");
   }
   const publicId = await extractPublicIdFromUrl(user.avatar?.url);
@@ -259,7 +263,13 @@ const deleteAndUpdateAvtar = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(200, user, "user avatar is deleted and updated successfully!!");
+    .json(
+      new ApiResponse(
+        200,
+        user,
+        "user avatar is deleted and updated successfully!!"
+      )
+    );
 });
 export {
   registerUser,

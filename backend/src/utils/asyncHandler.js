@@ -8,7 +8,7 @@ const asyncHandler = (requestHandler) => async (req, res, next) => {
         : 500;
     res.status(statusCode).json({
       success: false,
-      message: err.message || "Something went wrong",
+      message: error.message || "Something went wrong",
     });
   }
 };
