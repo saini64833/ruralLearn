@@ -74,10 +74,8 @@ const updateLesson = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not allowed to update this lesson");
   }
 
-
   lesson.pdfUrl = Array.isArray(lesson.pdfUrl) ? lesson.pdfUrl : [];
   lesson.videoUrl = Array.isArray(lesson.videoUrl) ? lesson.videoUrl : [];
-
 
   if (req.files && req.files.pdfUrl && req.files.pdfUrl.length > 0) {
     for (const file of req.files.pdfUrl) {
@@ -85,7 +83,6 @@ const updateLesson = asyncHandler(async (req, res) => {
       lesson.pdfUrl.push(url);
     }
   }
-
 
   if (req.files && req.files.videoUrl && req.files.videoUrl.length > 0) {
     for (const file of req.files.videoUrl) {
@@ -149,17 +146,16 @@ const likeLesson = asyncHandler(async (req, res) => {
   if (!lesson) throw new ApiError(404, "Lesson not found");
 
   const userId = req.user._id.toString();
-  const index = lesson.likes.findIndex(like => like.toString() === userId);
+  const index = lesson.likes.findIndex((like) => like.toString() === userId);
 
   if (index === -1) {
-    lesson.likes.push(userId); // Like
+    lesson.likes.push(userId);
   } else {
-    lesson.likes.splice(index, 1); // Unlike
+    lesson.likes.splice(index, 1);
   }
 
   await lesson.save();
   res.status(200).json({ success: true, likesCount: lesson.likes.length });
 });
 
-
-export { uploadLesson, updateLesson ,deleteLesson,likeLesson,commentLesson};
+export { uploadLesson, updateLesson, deleteLesson, likeLesson, commentLesson };
