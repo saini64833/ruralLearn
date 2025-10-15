@@ -1,16 +1,42 @@
 import multer from "multer";
+import fs from "fs";
+import path from "path";
+
+const tempDir = path.join("./public/temp");
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null,"./public/temp")
+    cb(null, tempDir);
   },
   filename: function (req, file, cb) {
-    // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)//this addition is best option
-    cb(null, file.originalname)
-  }
-})
+    const timestamp = Date.now();
+    const safeName = file.originalname.replace(/\s+/g, "_");
+    cb(null, `${timestamp}_${safeName}`);
+  },
+});
 
-export const upload = multer(
-    {
-        storage, 
-    }
-)
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    "application/pdf",
+    "video/mp4",
+    "video/mpeg",
+    "video/quicktime",
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+  ];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Unsupported file type"), false);
+  }
+};
+
+export const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 100 * 1024 * 1024 }, 
+});

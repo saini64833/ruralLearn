@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-
 const lessonsSchema = new Schema(
   {
     title: {
@@ -23,11 +22,11 @@ const lessonsSchema = new Schema(
       required: true,
     },
     videoUrl: {
-      type:String,//cloudinary
-      required:true
+      type: [String], //cloudinary
+      required: true,
     },
     pdfUrl: {
-      type: String, //cloudinary
+      type: [String], //cloudinary
       required: true,
     },
     createdBy: {
@@ -40,10 +39,6 @@ const lessonsSchema = new Schema(
         type: String,
       },
     ],
-    isOfflineReady: {
-      type: Boolean,
-      default: false,
-    },
   },
   { timestamps: true }
 );
