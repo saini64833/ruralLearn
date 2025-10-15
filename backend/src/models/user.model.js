@@ -47,7 +47,7 @@ const userSchema = new Schema(
     school: {
       type: String,
       required: function () {
-        return this.role === "Student" || "Teacher";
+        return this.role === "Student" || this.role === "Teacher";
       },
     },
     watchHistory: [

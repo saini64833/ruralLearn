@@ -34,6 +34,8 @@ const registerUser = asyncHandler(async (req, res) => {
   console.log("fullName:", fullName);
   console.log("userName:", userName);
   console.log("role:", role);
+  console.log("grade",grade);
+  console.log("school",)
   if (
     [fullName, userName, email, password, role].some(
       (field) => field?.trim() === ""
@@ -48,7 +50,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
   if (role === "Teacher") {
     if (!school) {
-      throw new ApiError(401, "school and required for Teacher");
+      throw new ApiError(401, "school  required for Teacher");
     }
   }
   const existedUser = await User.findOne({

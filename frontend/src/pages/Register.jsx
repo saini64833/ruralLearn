@@ -39,7 +39,7 @@ const Register = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMessage("✅ Registration successful! Redirecting...");
-      setTimeout(() => navigate("/login"), 1000);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setMessage(err.response?.data?.message || "❌ Registration failed!");
     } finally {
