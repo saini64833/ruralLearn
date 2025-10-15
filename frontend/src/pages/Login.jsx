@@ -1,30 +1,41 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance.js";
 
 const Login = () => {
   const navigate = useNavigate();
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
+
+    if (!emailOrUsername || !password) {
+      setError("Please enter both email/username and password");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const res = await axios.post("/api/v1/login", {
+      const res = await axiosInstance.post("/login", {
         emailOrUsername,
         password,
       });
 
-      // Save token or user info if your backend returns it
-      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("token", res.data.token); // save token
 
-      // Redirect to lessons page
+      // Optionally save user data
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
       navigate("/lessons");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,6 +58,8 @@ const Login = () => {
               value={emailOrUsername}
               onChange={(e) => setEmailOrUsername(e.target.value)}
               placeholder="Enter your email or username"
+              required
+              autoComplete="username"
               className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             />
           </div>
@@ -60,6 +73,8 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
+              required
+              autoComplete="current-password"
               className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             />
           </div>
@@ -67,8 +82,9 @@ const Login = () => {
           <button
             type="submit"
             className="w-full py-2 mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

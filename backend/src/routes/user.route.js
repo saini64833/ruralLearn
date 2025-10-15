@@ -17,7 +17,7 @@ import { verifyJwt } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-  router.route("/register").post(upload.single("avatar"), registerUser);
+router.route("/register").post(upload.single("avatar"), registerUser);
 
 router.route("/login").post(loginUser);
 
@@ -30,6 +30,8 @@ router.route("/change-password").post(verifyJwt, changeCurrentPassword);
 router.route("/me").get(verifyJwt, getCurrentUser);
 router.route("/account-detail-update").put(verifyJwt, updateAccountDetails);
 
-router.route("/update-avatar").put(verifyJwt,upload.single("avatar"),deleteAndUpdateAvatar)
+router
+  .route("/update-avatar")
+  .put(verifyJwt, upload.single("avatar"), deleteAndUpdateAvatar);
 
 export default router;

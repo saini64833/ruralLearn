@@ -64,9 +64,9 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "avtar local path required!!");
   }
   const avatar = await uploadOnCloudinary(avatarLocalPath);
-  if (!avatar.secure_url) {
+  if (!avatar) {
     throw new ApiError(401, "avatar is required!!");
-  }
+  } 
   const user = await User.create({
     password,
     fullName,
@@ -75,7 +75,7 @@ const registerUser = asyncHandler(async (req, res) => {
     role,
     grade,
     school,
-    avatar: avatar.secure_url,
+    avatar: avatar,
   });
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"

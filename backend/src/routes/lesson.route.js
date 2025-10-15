@@ -5,7 +5,9 @@ import { upload } from "../middlewares/multer.middleware.js";
 import {
   uploadLesson,
   updateLesson,
-  deleteLesson
+  deleteLesson,
+  likeLesson,
+  commentLesson
 } from "../controllers/lessons.controller.js";
 
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -29,5 +31,7 @@ router
   );
 
   router.route("/delete-lesson/:id").put(verifyJwt,deleteLesson)
+  router.put("/lessons/:id/like", verifyJwt, likeLesson);
+router.post("/lessons/:id/comment", verifyJwt, commentLesson);
 
 export default router;

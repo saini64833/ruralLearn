@@ -128,5 +128,38 @@ const deleteLesson = asyncHandler(async (req, res) => {
     message: "Lesson deleted successfully",
   });
 });
+const commentLesson = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { text } = req.body;
 
-export { uploadLesson, updateLesson ,deleteLesson};
+  if (!text) throw new ApiError(400, "Comment text is required");
+
+  const lesson = await Lessons.findById(id);
+  if (!lesson) throw new ApiError(404, "Lesson not found");
+
+  lesson.comments.push({ user: req.user._id, text });
+  await lesson.save();
+
+  res.status(201).json({ success: true, comments: lesson.comments });
+});
+
+const likeLesson = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const lesson = await Lessons.findById(id);
+  if (!lesson) throw new ApiError(404, "Lesson not found");
+
+  const userId = req.user._id.toString();
+  const index = lesson.likes.findIndex(like => like.toString() === userId);
+
+  if (index === -1) {
+    lesson.likes.push(userId); // Like
+  } else {
+    lesson.likes.splice(index, 1); // Unlike
+  }
+
+  await lesson.save();
+  res.status(200).json({ success: true, likesCount: lesson.likes.length });
+});
+
+
+export { uploadLesson, updateLesson ,deleteLesson,likeLesson,commentLesson};

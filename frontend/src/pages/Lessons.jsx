@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import axiosInstance from "../utils/axiosInstance.js"; // your centralized axios
+import axiosInstance from "../api/axiosInstance.js"; 
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
