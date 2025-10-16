@@ -158,4 +158,21 @@ const likeLesson = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, likesCount: lesson.likes.length });
 });
 
-export { uploadLesson, updateLesson, deleteLesson, likeLesson, commentLesson };
+const getAllLessons = asyncHandler(async (req, res) => {
+  const Lessons = await Lessons.find()
+  if (!Lessons||Lessons.length===0) {
+    throw new ApiError(401, "all lesson does not found");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, Lessons, "lesson fetch successfully"));
+});
+
+export {
+  uploadLesson,
+  updateLesson,
+  deleteLesson,
+  likeLesson,
+  commentLesson,
+  getAllLessons,
+};

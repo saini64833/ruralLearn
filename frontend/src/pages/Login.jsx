@@ -21,17 +21,27 @@ const Login = () => {
     }
 
     try {
-      const res = await axiosInstance.post("/login", {
-        emailOrUsername,
-        password,
-      });
+      // Prepare payload matching backend keys
+      const payload = emailOrUsername.includes("@")
+        ? { email: emailOrUsername, password }
+        : { userName: emailOrUsername, password };
 
-      localStorage.setItem("token", res.data.token); // save token
+      const res = await axiosInstance.post("/users/login", payload);
 
-      // Optionally save user data
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      // Extract user from response
+      const user = res.data.data.user;
 
-      navigate("/lessons");
+      // Save user info to localStorage (optional)
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Role-based navigation
+      if (user.role === "Teacher") {
+        navigate("/lessons");
+      } else if (user.role === "Student") {
+        navigate("/lessons");
+      } else {
+        navigate("/"); // fallback
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {
@@ -60,6 +70,7 @@ const Login = () => {
               placeholder="Enter your email or username"
               required
               autoComplete="username"
+              disabled={loading}
               className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             />
           </div>
@@ -75,13 +86,14 @@ const Login = () => {
               placeholder="Enter your password"
               required
               autoComplete="current-password"
+              disabled={loading}
               className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition"
+            className="w-full py-2 mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition disabled:opacity-60"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}

@@ -5,7 +5,7 @@ const LessonUpload = () => {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    language: "",
+    language: "", 
     subject: "",
     content: "",
     tags: "",
@@ -44,7 +44,7 @@ const LessonUpload = () => {
 
     try {
       setLoading(true);
-      const res = await axiosInstance.post("/upload-lesson", formData, {
+      const res = await axiosInstance.post("/lessons/upload-lesson", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("Lesson uploaded successfully!");
