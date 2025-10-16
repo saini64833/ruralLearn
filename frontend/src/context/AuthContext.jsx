@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(res.data.message || "Login failed");
       }
     } catch (err) {
-      console.error(err);
+      console.log(err);
       throw err;
     }
   };
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await axiosInstance.post("/users/logout");
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
     localStorage.removeItem("accessToken");
     delete axiosInstance.defaults.headers.common["Authorization"];
@@ -35,15 +35,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchCurrentUser = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return setUser(null);
+    const accessToken= localStorage.getItem("accessToken");
+    if (!accessToken) return setUser(null);
 
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
     try {
       const res = await axiosInstance.get("/users/me");
       setUser(res.data.message); // user object is in message
     } catch (err) {
-      console.error("Failed to fetch user:", err.response?.data || err.message);
+      console.log("Failed to fetch user:", err.response?.data || err.message);
       setUser(null);
     }
   };

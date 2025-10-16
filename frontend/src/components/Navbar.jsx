@@ -10,27 +10,33 @@ const Navbar = () => {
         <Link to="/" className="text-2xl font-bold text-indigo-700">
           🌾 RuralLearn
         </Link>
+
         <div className="flex gap-5 items-center text-gray-700">
-          <Link to="/lessons" className="hover:text-indigo-600">
-            Lessons
-          </Link>
-          {user ? (
+          {/* Common link for logged-in users */}
+          {user && <Link to="/dashboard" className="hover:text-indigo-600">Dashboard</Link>}
+
+          {/* Teacher Links */}
+          {user && user.role === "Teacher" && (
             <>
-              <Link to="/dashboard" className="hover:text-indigo-600">
-                Dashboard
-              </Link>
-              <button
-                onClick={logout}
-                className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-              >
-                Logout
-              </button>
+              <Link to="/lessons/upload-lesson" className="hover:text-indigo-600">Upload Lessons</Link>
+              <Link to="/upload-quiz" className="hover:text-indigo-600">Upload Quiz</Link>
+              <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">View Lessons</Link>
+              <Link to="/view-quiz" className="hover:text-indigo-600">View Quiz</Link>
             </>
-          ) : (
+          )}
+
+          {/* Student Links */}
+          {user && user.role === "Student" && (
             <>
-              <Link to="/login" className="hover:text-indigo-600">
-                Login
-              </Link>
+              <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">Lessons</Link>
+              <Link to="/quizzes" className="hover:text-indigo-600">Quizzes</Link>
+            </>
+          )}
+
+          {/* Login/Register for guests */}
+          {!user && (
+            <>
+              <Link to="/login" className="hover:text-indigo-600">Login</Link>
               <Link
                 to="/register"
                 className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
@@ -38,6 +44,16 @@ const Navbar = () => {
                 Register
               </Link>
             </>
+          )}
+
+          {/* Logout button for logged-in users */}
+          {user && (
+            <button
+              onClick={logout}
+              className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              Logout
+            </button>
           )}
         </div>
       </div>

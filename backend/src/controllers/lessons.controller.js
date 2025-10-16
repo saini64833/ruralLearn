@@ -159,13 +159,13 @@ const likeLesson = asyncHandler(async (req, res) => {
 });
 
 const getAllLessons = asyncHandler(async (req, res) => {
-  const Lessons = await Lessons.find()
-  if (!Lessons||Lessons.length===0) {
+  const lessons = await Lessons.find()
+  if (!lessons||lessons.length===0) {
     throw new ApiError(401, "all lesson does not found");
   }
   return res
     .status(200)
-    .json(new ApiResponse(200, Lessons, "lesson fetch successfully"));
+    .json(new ApiResponse(200, lessons, "lesson fetch successfully"));
 });
 
 export {

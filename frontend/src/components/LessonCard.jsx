@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaThumbsUp, FaComment } from "react-icons/fa";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../api/axiosInstance.js";
 
 const LessonCard = ({ lesson }) => {
   const [likesCount, setLikesCount] = useState(lesson.likes?.length || 0);
@@ -17,9 +17,11 @@ const LessonCard = ({ lesson }) => {
   };
 
   const handleComment = async () => {
-    if (!commentText) return;
+    if (!commentText.trim()) return;
     try {
-      const res = await axiosInstance.post(`/lessons/${lesson._id}/comment`, { text: commentText });
+      const res = await axiosInstance.post(`/lessons/${lesson._id}/comment`, {
+        text: commentText,
+      });
       setComments(res.data.comments);
       setCommentText("");
     } catch (err) {
@@ -38,22 +40,27 @@ const LessonCard = ({ lesson }) => {
         </button>
       </div>
 
-      <div className="mt-2">
+      <div className="mt-2 flex gap-2">
         <input
           type="text"
           placeholder="Add a comment..."
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
-          className="border p-1 mr-2"
+          className="border p-1 flex-1 rounded"
         />
-        <button onClick={handleComment} className="bg-blue-500 text-white px-2 py-1">
+        <button
+          onClick={handleComment}
+          className="bg-blue-500 text-white px-2 py-1 rounded"
+        >
           <FaComment /> Comment
         </button>
       </div>
 
       <div className="mt-2">
         {comments.map((c, i) => (
-          <p key={i} className="text-sm border-b py-1">{c.text}</p>
+          <p key={i} className="text-sm border-b py-1">
+            {c.text}
+          </p>
         ))}
       </div>
     </div>

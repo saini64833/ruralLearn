@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance.js";
 
 const LessonDetail = () => {
-  const { id } = useParams(); // lesson ID from URL
+  const { id } = useParams();
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
@@ -35,9 +35,11 @@ const LessonDetail = () => {
   };
 
   const handleComment = async () => {
-    if (!commentText) return;
+    if (!commentText.trim()) return;
     try {
-      const res = await axiosInstance.post(`/lessons/${id}/comment`, { text: commentText });
+      const res = await axiosInstance.post(`/lessons/${id}/comment`, {
+        text: commentText,
+      });
       setLesson({ ...lesson, comments: res.data.comments });
       setCommentText("");
     } catch (err) {
@@ -55,7 +57,7 @@ const LessonDetail = () => {
       <p className="mb-2"><strong>Language:</strong> {lesson.language}</p>
       <p className="mb-2"><strong>Subject:</strong> {lesson.subject}</p>
       <p className="mb-2"><strong>Content:</strong> {lesson.content}</p>
-      <p className="mb-4"><strong>Tags:</strong> {lesson.tags.join(", ")}</p>
+      <p className="mb-4"><strong>Tags:</strong> {lesson.tags?.join(", ")}</p>
 
       <div className="flex gap-4 mb-4">
         <button
@@ -72,7 +74,7 @@ const LessonDetail = () => {
       <div className="mb-4">
         <h2 className="font-semibold mb-2">PDFs</h2>
         <ul className="list-disc pl-5">
-          {lesson.pdfUrl.map((pdf, i) => (
+          {lesson.pdfUrl?.map((pdf, i) => (
             <li key={i}>
               <a href={pdf} target="_blank" rel="noreferrer" className="text-blue-500">
                 PDF {i + 1}
@@ -84,7 +86,7 @@ const LessonDetail = () => {
 
       <div className="mb-4">
         <h2 className="font-semibold mb-2">Videos</h2>
-        {lesson.videoUrl.map((video, i) => (
+        {lesson.videoUrl?.map((video, i) => (
           <video key={i} controls className="w-full my-2">
             <source src={video} type="video/mp4" />
           </video>
@@ -109,7 +111,7 @@ const LessonDetail = () => {
           </button>
         </div>
         <ul>
-          {lesson.comments.map((c, i) => (
+          {lesson.comments?.map((c, i) => (
             <li key={i} className="border-b py-1">
               {c.text}
             </li>

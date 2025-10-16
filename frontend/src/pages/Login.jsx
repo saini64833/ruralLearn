@@ -21,26 +21,35 @@ const Login = () => {
     }
 
     try {
-      // Prepare payload matching backend keys
+      // Prepare payload
       const payload = emailOrUsername.includes("@")
         ? { email: emailOrUsername, password }
         : { userName: emailOrUsername, password };
 
       const res = await axiosInstance.post("/users/login", payload);
-
-      // Extract user from response
-      const user = res.data.data.user;
-
-      // Save user info to localStorage (optional)
+      console.log("response data:", res.data);
+      const user = res.data?.message.user;
+      console.log(user);
+      if (!user) {
+        throw new Error("User info missing in response");
+      }
+      // Save user info & token
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("accessToken", res.data.message?.accessToken);
 
       // Role-based navigation
-      if (user.role === "Teacher") {
-        navigate("/lessons");
-      } else if (user.role === "Student") {
-        navigate("/lessons");
-      } else {
-        navigate("/"); // fallback
+      switch (user.role) {
+        case "Teacher":
+          navigate("/lessons/get-all-lessons");
+          break;
+        case "Student":
+          navigate("/lessons/get-all-lessons");
+          break;
+        // case "Parent":
+        //   navigate("/parent/progress");
+        //   break;
+        default:
+          navigate("/");
       }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");

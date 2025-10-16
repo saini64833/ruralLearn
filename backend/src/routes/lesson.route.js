@@ -7,13 +7,14 @@ import {
   likeLesson,
   commentLesson,
   getAllLessons,
+  // getLessonById,
 } from "../controllers/lessons.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import { roleVerification } from "../middlewares/role.middlewares.js";
 
 const router = Router();
 
-// Upload lesson
+// Upload a new lesson
 router.post(
   "/upload-lesson",
   verifyJwt,
@@ -22,26 +23,21 @@ router.post(
   uploadLesson
 );
 
-// Update lesson
+// Update a lesson
 router.put(
-  "/lesson/:id",
+  "/:id",
   verifyJwt,
   roleVerification(["Teacher"]),
   upload.fields([{ name: "pdfUrl" }, { name: "videoUrl" }]),
   updateLesson
 );
 
-// Delete lesson
-router.delete(
-  "/lesson/:id",
-  verifyJwt,
-  roleVerification(["Teacher"]),
-  deleteLesson
-);
+// Delete a lesson
+router.delete("/:id", verifyJwt, roleVerification(["Teacher"]), deleteLesson);
 
 // Like a lesson
 router.put(
-  "/lesson/:id/like",
+  "/:id/like",
   verifyJwt,
   roleVerification(["Teacher", "Student"]),
   likeLesson
@@ -49,7 +45,7 @@ router.put(
 
 // Comment on a lesson
 router.post(
-  "/lesson/:id/comment",
+  "/:id/comment",
   verifyJwt,
   roleVerification(["Teacher", "Student"]),
   commentLesson
@@ -62,5 +58,13 @@ router.get(
   roleVerification(["Teacher", "Student"]),
   getAllLessons
 );
+
+// Get lesson by ID (for LessonDetail page)
+// router.get(
+//   "/:id",
+//   verifyJwt,
+//   roleVerification(["Teacher", "Student"]),
+//   getLessonById
+// );
 
 export default router;

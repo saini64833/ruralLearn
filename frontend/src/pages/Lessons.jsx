@@ -15,7 +15,10 @@ const Lessons = () => {
         const res = await axiosInstance.get("/lessons/get-all-lessons");
         setLessons(res.data.lessons);
       } catch (err) {
-        console.error("Failed to fetch lessons:", err.response?.data || err.message);
+        console.log(
+          "Failed to fetch lessons:",
+          err.response?.data || err.message
+        );
       }
     };
     fetchLessons();
@@ -43,7 +46,11 @@ const Lessons = () => {
               onClick={() => navigate("/users/me")}
               title={user.fullName}
             >
-              <img src={user.avatar || "/default-avatar.png"} alt={user.fullName} className="w-full h-full object-cover" />
+              <img
+                src={user.avatar || "/default-avatar.png"}
+                alt={user.fullName}
+                className="w-full h-full object-cover"
+              />
             </div>
           )}
         </div>
@@ -55,7 +62,10 @@ const Lessons = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => (
-            <div key={lesson._id} onClick={() => navigate(`/lessons/${lesson._id}`)}>
+            <div
+              key={lesson._id}
+              onClick={() => navigate(`/lessons/${lesson._id}`)}
+            >
               <LessonCard lesson={lesson} />
             </div>
           ))}

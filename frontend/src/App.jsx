@@ -10,8 +10,6 @@ import Login from "./pages/Login.jsx";
 import Lessons from "./pages/Lessons.jsx";
 import LessonDetail from "./pages/LessonDetails.jsx";
 import LessonUpload from "./pages/LessonUpload.jsx";
-
-
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 const AppWrapper = () => {
@@ -28,13 +26,11 @@ const AppWrapper = () => {
     <>
       {loading && <Loader />}
       <Navbar />
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Protected Routes */}
         <Route
           path="/lessons"
           element={
@@ -44,7 +40,7 @@ const AppWrapper = () => {
           }
         />
         <Route
-          path="/lessons/upload"
+          path="/lessons/upload-lesson"
           element={
             <ProtectedRoute>
               <LessonUpload />
