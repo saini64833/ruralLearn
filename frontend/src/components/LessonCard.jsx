@@ -4,8 +4,8 @@ import axiosInstance from "../api/axiosInstance.js";
 import VideoPlayer from "./VideoPlayer.jsx";
 
 const LessonCard = ({ lesson }) => {
-  const [likesCount, setLikesCount] = useState(lesson.data.message.likes?.length || 0);
-  const [comments, setComments] = useState(lesson.data.message.comments || []);
+  const [likesCount, setLikesCount] = useState(lesson.likes?.length || 0);
+  const [comments, setComments] = useState(lesson.comments || []);
   const [commentText, setCommentText] = useState("");
   const [activeVideo, setActiveVideo] = useState(0); // index of current video
 
@@ -36,8 +36,12 @@ const LessonCard = ({ lesson }) => {
   return (
     <div className="border border-gray-200 rounded-2xl shadow-md p-4 bg-white">
       {/* Title & Description */}
-      <h2 className="text-lg font-bold text-indigo-700 mb-1">{lesson.title}</h2>
-      <p className="text-gray-700 mb-3 line-clamp-2">{lesson.description}</p>
+      <h2 className="text-lg font-bold text-indigo-700 mb-1">
+        {lesson.title}
+      </h2>
+      <p className="text-gray-700 mb-3 line-clamp-2">
+        {lesson.description}
+      </p>
 
       {/* Video Player */}
       {lesson.videoUrl?.length > 0 ? (
@@ -62,7 +66,9 @@ const LessonCard = ({ lesson }) => {
           )}
         </div>
       ) : (
-        <p className="text-gray-400 italic text-sm mb-3">No videos uploaded.</p>
+        <p className="text-gray-400 italic text-sm mb-3">
+          No videos uploaded.
+        </p>
       )}
 
       {/* PDFs */}
@@ -122,7 +128,9 @@ const LessonCard = ({ lesson }) => {
         {/* Comments List */}
         <div className="max-h-32 overflow-y-auto border-t pt-2">
           {comments.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">No comments yet.</p>
+            <p className="text-sm text-gray-400 italic">
+              No comments yet.
+            </p>
           ) : (
             comments.map((c, i) => (
               <p key={i} className="text-sm border-b py-1">

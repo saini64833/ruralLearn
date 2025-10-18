@@ -16,11 +16,10 @@ const Lessons = () => {
         const res = await axiosInstance.get("/lessons/get-all-lessons");
         console.log("Fetched lessons:", res.data);
 
-        // ✅ Correctly set lessons based on backend structure
-        // Assuming your backend returns: { success: true, message: "All lessons fetched", lessons: [...] }
-        setLessons(res.data?.lessons || []);
+        // ✅ `message` is an array of lessons, not nested inside another array
+        setLessons(res.data?.message || []);
       } catch (err) {
-        console.error(
+        console.log(
           "Failed to fetch lessons:",
           err.response?.data || err.message
         );
@@ -36,6 +35,7 @@ const Lessons = () => {
         <h1 className="text-2xl font-bold text-indigo-700">All Lessons</h1>
 
         <div className="flex items-center gap-4">
+          {/* ✅ Only teachers can upload lessons */}
           {user?.role === "Teacher" && (
             <button
               onClick={() => navigate("/lessons/upload-lesson")}
@@ -45,6 +45,7 @@ const Lessons = () => {
             </button>
           )}
 
+          {/* ✅ User avatar */}
           {user && (
             <div
               className="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-600 cursor-pointer"
@@ -63,9 +64,7 @@ const Lessons = () => {
 
       {/* Lessons Grid */}
       {lessons.length === 0 ? (
-        <p className="text-gray-500 text-center mt-10">
-          No lessons available.
-        </p>
+        <p className="text-gray-500 text-center mt-10">No lessons available.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => (
@@ -74,17 +73,6 @@ const Lessons = () => {
               onClick={() => navigate(`/lessons/${lesson._id}`)}
               className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden"
             >
-              {/* ✅ Show first video as preview (if available) */}
-              {lesson.videoUrl?.length > 0 ? (
-                <VideoPlayer videoUrl={lesson.videoUrl[0]} previewMode />
-              ) : (
-                <img
-                  src="/default-thumbnail.jpg"
-                  alt="No video"
-                  className="w-full h-48 object-cover bg-gray-200"
-                />
-              )}
-
               <LessonCard lesson={lesson} />
             </div>
           ))}
