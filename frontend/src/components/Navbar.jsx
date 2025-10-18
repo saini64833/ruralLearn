@@ -18,8 +18,8 @@ const Navbar = () => {
           {/* Teacher Links */}
           {user && user.role === "Teacher" && (
             <>
-              <Link to="/lessons/upload-lesson" className="hover:text-indigo-600">Upload Lessons</Link>
-              <Link to="/upload-quiz" className="hover:text-indigo-600">Upload Quiz</Link>
+              {/* <Link to="/lessons/upload-lesson" className="hover:text-indigo-600">Upload Lessons</Link>
+              <Link to="/upload-quiz" className="hover:text-indigo-600">Upload Quiz</Link> */}
               <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">View Lessons</Link>
               <Link to="/view-quiz" className="hover:text-indigo-600">View Quiz</Link>
             </>
