@@ -155,19 +155,41 @@ const likeLesson = asyncHandler(async (req, res) => {
   }
 
   await lesson.save();
-  res.status(200).json({ success: true, likesCount: lesson.likes.length });
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { likesCount: lesson.likes.length },
+        "Lesson liked successfully"
+      )
+    );
 });
 
 const getAllLessons = asyncHandler(async (req, res) => {
-  const lessons = await Lessons.find()
-  if (!lessons||lessons.length===0) {
-    throw new ApiError(401, "all lesson does not found");
+  const lessons = await Lessons.find();
+  if (!lessons || lessons.length === 0) {
+    throw new ApiError(404, "all lesson does not found");
+  }
+  console.log(lessons);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, lessons, "lessons fetch successfully"));
+});
+
+const getLessonById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    throw new ApiError(401, "lesson id does not found!!");
+  }
+  const lesson = await Lessons.findById(id);
+  if (!lesson) {
+    throw new ApiError(404, "lesson does not found!!");
   }
   return res
     .status(200)
-    .json(new ApiResponse(200, lessons, "lesson fetch successfully"));
+    .json(new ApiResponse(200, lesson, "lesson found successfully by id"));
 });
-
 export {
   uploadLesson,
   updateLesson,
@@ -175,4 +197,5 @@ export {
   likeLesson,
   commentLesson,
   getAllLessons,
+  getLessonById,
 };

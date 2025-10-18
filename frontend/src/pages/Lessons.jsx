@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
+import VideoPlayer from "../components/VideoPlayer.jsx";
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -13,9 +14,13 @@ const Lessons = () => {
     const fetchLessons = async () => {
       try {
         const res = await axiosInstance.get("/lessons/get-all-lessons");
-        setLessons(res.data.lessons);
+        console.log("Fetched lessons:", res.data);
+
+        // ✅ Correctly set lessons based on backend structure
+        // Assuming your backend returns: { success: true, message: "All lessons fetched", lessons: [...] }
+        setLessons(res.data?.lessons || []);
       } catch (err) {
-        console.log(
+        console.error(
           "Failed to fetch lessons:",
           err.response?.data || err.message
         );
@@ -58,14 +63,28 @@ const Lessons = () => {
 
       {/* Lessons Grid */}
       {lessons.length === 0 ? (
-        <p className="text-gray-500">No lessons available.</p>
+        <p className="text-gray-500 text-center mt-10">
+          No lessons available.
+        </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => (
             <div
               key={lesson._id}
               onClick={() => navigate(`/lessons/${lesson._id}`)}
+              className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden"
             >
+              {/* ✅ Show first video as preview (if available) */}
+              {lesson.videoUrl?.length > 0 ? (
+                <VideoPlayer videoUrl={lesson.videoUrl[0]} previewMode />
+              ) : (
+                <img
+                  src="/default-thumbnail.jpg"
+                  alt="No video"
+                  className="w-full h-48 object-cover bg-gray-200"
+                />
+              )}
+
               <LessonCard lesson={lesson} />
             </div>
           ))}

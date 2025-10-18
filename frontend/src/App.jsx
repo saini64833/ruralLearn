@@ -32,7 +32,7 @@ const AppWrapper = () => {
         <Route path="/login" element={<Login />} />
 
         <Route
-          path="/lessons"
+          path="/lessons/get-all-lessons"
           element={
             <ProtectedRoute>
               <Lessons />

@@ -28,6 +28,7 @@ const Login = () => {
 
       const res = await axiosInstance.post("/users/login", payload);
       console.log("response data:", res.data);
+      console.log(res.deta)
       const user = res.data?.message.user;
       console.log(user);
       if (!user) {

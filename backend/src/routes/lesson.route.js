@@ -7,7 +7,7 @@ import {
   likeLesson,
   commentLesson,
   getAllLessons,
-  // getLessonById,
+   getLessonById,
 } from "../controllers/lessons.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import { roleVerification } from "../middlewares/role.middlewares.js";
@@ -60,11 +60,11 @@ router.get(
 );
 
 // Get lesson by ID (for LessonDetail page)
-// router.get(
-//   "/:id",
-//   verifyJwt,
-//   roleVerification(["Teacher", "Student"]),
-//   getLessonById
-// );
+router.get(
+  "/:id",
+  verifyJwt,
+  roleVerification(["Teacher", "Student"]),
+  getLessonById
+);
 
 export default router;

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaThumbsUp, FaComment } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance.js";
+import VideoPlayer from "../components/VideoPlayer.jsx";
 
 const LessonDetail = () => {
   const { id } = useParams();
@@ -12,9 +13,9 @@ const LessonDetail = () => {
   const fetchLesson = async () => {
     try {
       const res = await axiosInstance.get(`/lessons/${id}`);
-      setLesson(res.data.data);
+      setLesson(res.data?.message);
     } catch (err) {
-      console.error(err);
+      console.log(err);
       alert("Error fetching lesson");
     } finally {
       setLoading(false);
@@ -71,6 +72,7 @@ const LessonDetail = () => {
         </span>
       </div>
 
+      {/* ✅ PDF Section */}
       <div className="mb-4">
         <h2 className="font-semibold mb-2">PDFs</h2>
         <ul className="list-disc pl-5">
@@ -84,15 +86,19 @@ const LessonDetail = () => {
         </ul>
       </div>
 
+      {/* ✅ Video Section (with VideoPlayer) */}
       <div className="mb-4">
         <h2 className="font-semibold mb-2">Videos</h2>
-        {lesson.videoUrl?.map((video, i) => (
-          <video key={i} controls className="w-full my-2">
-            <source src={video} type="video/mp4" />
-          </video>
-        ))}
+        {lesson.videoUrl?.length > 0 ? (
+          lesson.videoUrl.map((video, i) => (
+            <VideoPlayer key={i} videoUrl={video} />
+          ))
+        ) : (
+          <p className="text-gray-500">No videos available.</p>
+        )}
       </div>
 
+      {/* ✅ Comments Section */}
       <div className="mb-4">
         <h2 className="font-semibold mb-2">Comments</h2>
         <div className="flex gap-2 mb-2">
