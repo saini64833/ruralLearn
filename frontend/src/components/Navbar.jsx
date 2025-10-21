@@ -13,7 +13,7 @@ const Navbar = () => {
 
         <div className="flex gap-5 items-center text-gray-700">
           {/* Common link for logged-in users */}
-          {user && <Link to="/dashboard" className="hover:text-indigo-600">Dashboard</Link>}
+          {user && <Link to="/users/me" className="hover:text-indigo-600">Dashboard</Link>}
 
           {/* Teacher Links */}
           {user && user.role === "Teacher" && (

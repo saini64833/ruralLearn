@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
@@ -11,6 +16,7 @@ import Lessons from "./pages/Lessons.jsx";
 import LessonDetail from "./pages/LessonDetails.jsx";
 import LessonUpload from "./pages/LessonUpload.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -52,6 +58,14 @@ const AppWrapper = () => {
           element={
             <ProtectedRoute>
               <LessonDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/me"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
             </ProtectedRoute>
           }
         />
