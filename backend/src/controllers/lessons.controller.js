@@ -1,50 +1,33 @@
 import { Lessons } from "../models/lessons.model.js";
+import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
+// Upload Lesson
 const uploadLesson = asyncHandler(async (req, res) => {
-  if (req.user.role !== "Teacher") {
-    throw new ApiError(401, "Only Teacher can upload lessons!");
-  }
+  if (req.user.role !== "Teacher") throw new ApiError(401, "Only teachers can upload lessons");
 
   const { title, description, language, subject, content, tags } = req.body;
 
-  if (
-    [title, description, language, subject, content].some(
-      (field) => !field || field.trim() === ""
-    )
-  ) {
-    throw new ApiError(400, "All fields are required!");
-  }
+  if ([title, description, language, subject, content].some(f => !f?.trim()))
+    throw new ApiError(400, "All fields are required");
 
   const lessonTags = Array.isArray(tags) ? tags : tags?.split(",") || [];
 
-  const pdfFiles = req.files.pdfUrl;
-  if (!pdfFiles) {
-    throw new ApiError(401, "pdf file path mistake");
-  }
-  if (pdfFiles.length === 0)
-    throw new ApiError(400, "At least one PDF file is required!");
+  // PDFs
+  const pdfFiles = req.files?.pdfUrl;
+  if (!pdfFiles || pdfFiles.length === 0) throw new ApiError(400, "At least one PDF is required");
+
   const pdfUrls = [];
   for (const file of pdfFiles) {
-    const url = await uploadOnCloudinary(file.path);
-    pdfUrls.push(url);
+    const uploadedPdf = await uploadOnCloudinary(file.path);
+    if (!uploadedPdf?.secure_url) throw new ApiError(500, "Failed to upload PDF");
+    pdfUrls.push(uploadedPdf.secure_url);
   }
 
-  const videoFiles = req.files.videoUrl;
-  if (!videoFiles) {
-    throw new ApiError(401, "something wrong on video file path");
-  }
-  if (videoFiles.length === 0)
-    throw new ApiError(400, "At least one video file is required!");
-  const videoUrls = [];
-  for (const file of videoFiles) {
-    const url = await uploadOnCloudinary(file.path);
-    videoUrls.push(url);
-  }
-
+  // Create lesson first
   const lesson = await Lessons.create({
     title,
     description,
@@ -53,82 +36,96 @@ const uploadLesson = asyncHandler(async (req, res) => {
     content,
     tags: lessonTags,
     pdfUrl: pdfUrls,
-    videoUrl: videoUrls,
     createdBy: req.user._id,
   });
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, lesson, "Lesson uploaded successfully"));
+
+  const videoFiles = req.files?.videoUrl;
+  if (!videoFiles || videoFiles.length === 0) throw new ApiError(400, "At least one video is required");
+
+  const videoIds = [];
+  for (const file of videoFiles) {
+    const uploadedVideo = await uploadOnCloudinary(file.path);
+    if (!uploadedVideo?.secure_url) throw new ApiError(500, "Video upload failed");
+
+    const videoDoc = await Video.create({
+      videoFile: uploadedVideo.secure_url,
+      thumbnail: uploadedVideo.thumbnail_url || "",
+      title: file.originalname,
+      duration: uploadedVideo.duration || 0,
+      owner: req.user._id,
+      lesson: lesson._id,
+    });
+
+    videoIds.push(videoDoc._id);
+  }
+
+  lesson.videos = videoIds;
+  await lesson.save();
+
+  res.status(201).json(new ApiResponse(201, lesson, "Lesson uploaded successfully"));
 });
 
+// Update Lesson
 const updateLesson = asyncHandler(async (req, res) => {
-  if (req.user.role !== "Teacher") {
-    throw new ApiError(401, "Only teacher can update lesson");
-  }
+  if (req.user.role !== "Teacher") throw new ApiError(401, "Only teachers can update lessons");
 
   const { id } = req.params;
   const lesson = await Lessons.findById(id);
   if (!lesson) throw new ApiError(404, "Lesson not found");
-  if (lesson.createdBy.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, "You are not allowed to update this lesson");
-  }
+  if (lesson.createdBy.toString() !== req.user._id.toString())
+    throw new ApiError(403, "You cannot update this lesson");
 
-  lesson.pdfUrl = Array.isArray(lesson.pdfUrl) ? lesson.pdfUrl : [];
-  lesson.videoUrl = Array.isArray(lesson.videoUrl) ? lesson.videoUrl : [];
-
-  if (req.files && req.files.pdfUrl && req.files.pdfUrl.length > 0) {
+  // Update PDFs
+  if (req.files?.pdfUrl?.length > 0) {
     for (const file of req.files.pdfUrl) {
-      const url = await uploadOnCloudinary(file.path);
-      lesson.pdfUrl.push(url);
+      const uploadedPdf = await uploadOnCloudinary(file.path);
+      if (uploadedPdf?.secure_url) lesson.pdfUrl.push(uploadedPdf.secure_url);
     }
   }
 
-  if (req.files && req.files.videoUrl && req.files.videoUrl.length > 0) {
+  // Update Videos
+  if (req.files?.videoUrl?.length > 0) {
     for (const file of req.files.videoUrl) {
-      const url = await uploadOnCloudinary(file.path);
-      lesson.videoUrl.push(url);
+      const uploadedVideo = await uploadOnCloudinary(file.path);
+      if (uploadedVideo?.secure_url) {
+        const videoDoc = await Video.create({
+          videoFile: uploadedVideo.secure_url,
+          thumbnail: uploadedVideo.thumbnail_url || "",
+          title: file.originalname,
+          duration: uploadedVideo.duration || 0,
+          owner: req.user._id,
+          lesson: lesson._id,
+        });
+        lesson.videos.push(videoDoc._id);
+      }
     }
   }
 
   await lesson.save();
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, lesson, "Lesson updated successfully"));
+  res.status(200).json(new ApiResponse(200, lesson, "Lesson updated successfully"));
 });
 
+// Delete Lesson
 const deleteLesson = asyncHandler(async (req, res) => {
-  if (req.user.role !== "Teacher") {
-    throw new ApiError(403, "Only teachers can delete lessons");
-  }
+  if (req.user.role !== "Teacher") throw new ApiError(403, "Only teachers can delete lessons");
 
   const { id } = req.params;
-
-  if (!id) {
-    throw new ApiError(400, "Lesson id is required");
-  }
-
   const lesson = await Lessons.findById(id);
-  if (!lesson) {
-    throw new ApiError(404, "Lesson not found");
-  }
+  if (!lesson) throw new ApiError(404, "Lesson not found");
+  if (lesson.createdBy.toString() !== req.user._id.toString())
+    throw new ApiError(403, "You cannot delete this lesson");
 
-  if (lesson.createdBy.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, "You are not allowed to delete this lesson");
-  }
-
+  await Video.deleteMany({ lesson: lesson._id });
   await Lessons.findByIdAndDelete(id);
 
-  return res.status(200).json({
-    success: true,
-    message: "Lesson deleted successfully",
-  });
+  res.status(200).json(new ApiResponse(200, {}, "Lesson deleted successfully"));
 });
+
+// Comment
 const commentLesson = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
-
   if (!text) throw new ApiError(400, "Comment text is required");
 
   const lesson = await Lessons.findById(id);
@@ -136,60 +133,42 @@ const commentLesson = asyncHandler(async (req, res) => {
 
   lesson.comments.push({ user: req.user._id, text });
   await lesson.save();
-
-  res.status(201).json({ success: true, comments: lesson.comments });
+  res.status(201).json(new ApiResponse(201, lesson.comments, "Comment added"));
 });
 
+// Like
 const likeLesson = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const lesson = await Lessons.findById(id);
   if (!lesson) throw new ApiError(404, "Lesson not found");
 
   const userId = req.user._id.toString();
-  const index = lesson.likes.findIndex((like) => like.toString() === userId);
+  const index = lesson.likes.findIndex(like => like.toString() === userId);
 
-  if (index === -1) {
-    lesson.likes.push(userId);
-  } else {
-    lesson.likes.splice(index, 1);
-  }
+  if (index === -1) lesson.likes.push(userId);
+  else lesson.likes.splice(index, 1);
 
   await lesson.save();
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { likesCount: lesson.likes.length },
-        "Lesson liked successfully"
-      )
-    );
+  res.status(200).json(new ApiResponse(200, { likesCount: lesson.likes.length }, "Like toggled"));
 });
 
+// Get All Lessons
 const getAllLessons = asyncHandler(async (req, res) => {
-  const lessons = await Lessons.find();
-  if (!lessons || lessons.length === 0) {
-    throw new ApiError(404, "all lesson does not found");
-  }
-  console.log(lessons);
-  return res
-    .status(200)
-    .json(new ApiResponse(200, lessons, "lessons fetch successfully"));
+  const lessons = await Lessons.find().populate("videos").populate("createdBy", "name email");
+  if (!lessons?.length) throw new ApiError(404, "No lessons found");
+
+  res.status(200).json(new ApiResponse(200, lessons, "Lessons fetched successfully"));
 });
 
+// Get Lesson by ID
 const getLessonById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  if (!id) {
-    throw new ApiError(401, "lesson id does not found!!");
-  }
-  const lesson = await Lessons.findById(id);
-  if (!lesson) {
-    throw new ApiError(404, "lesson does not found!!");
-  }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, lesson, "lesson found successfully by id"));
+  const lesson = await Lessons.findById(id).populate("videos").populate("createdBy", "name email");
+  if (!lesson) throw new ApiError(404, "Lesson not found");
+
+  res.status(200).json(new ApiResponse(200, lesson, "Lesson fetched successfully"));
 });
+
 export {
   uploadLesson,
   updateLesson,

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
-import VideoPlayer from "../components/VideoPlayer.jsx";
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -14,10 +13,7 @@ const Lessons = () => {
     const fetchLessons = async () => {
       try {
         const res = await axiosInstance.get("/lessons/get-all-lessons");
-        console.log("Fetched lessons:", res.data);
-
-        // ✅ `message` is an array of lessons, not nested inside another array
-        setLessons(res.data?.message || []);
+        setLessons(res.data?.data || []);
       } catch (err) {
         console.log(
           "Failed to fetch lessons:",
@@ -33,9 +29,7 @@ const Lessons = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-indigo-700">All Lessons</h1>
-
         <div className="flex items-center gap-4">
-          {/* ✅ Only teachers can upload lessons */}
           {user?.role === "Teacher" && (
             <button
               onClick={() => navigate("/lessons/upload-lesson")}
@@ -44,8 +38,6 @@ const Lessons = () => {
               Upload Lesson
             </button>
           )}
-
-          {/* ✅ User avatar */}
           {user && (
             <div
               className="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-600 cursor-pointer"
@@ -67,15 +59,23 @@ const Lessons = () => {
         <p className="text-gray-500 text-center mt-10">No lessons available.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {lessons.map((lesson) => (
-            <div
-              key={lesson._id}
-              onClick={() => navigate(`/lessons/${lesson._id}`)}
-              className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden"
-            >
-              <LessonCard lesson={lesson} />
-            </div>
-          ))}
+          {lessons.map((lesson) => {
+            const firstVideo = lesson.videos?.[0];
+            return (
+              <div
+                key={lesson._id}
+                onClick={() => navigate(`/lessons/${lesson._id}`)}
+                className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden"
+              >
+                <LessonCard
+                  lesson={{
+                    ...lesson,
+                    thumbnail: firstVideo?.thumbnail || "/default-video.png",
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

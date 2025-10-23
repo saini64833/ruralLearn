@@ -5,7 +5,7 @@ const LessonUpload = () => {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    language: "", 
+    language: "",
     subject: "",
     content: "",
     tags: "",
@@ -13,6 +13,7 @@ const LessonUpload = () => {
 
   const [pdfFiles, setPdfFiles] = useState([]);
   const [videoFiles, setVideoFiles] = useState([]);
+  const [videoPreviews, setVideoPreviews] = useState([]); // for thumbnails
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -24,11 +25,17 @@ const LessonUpload = () => {
   };
 
   const handleVideoChange = (e) => {
-    setVideoFiles([...e.target.files]);
+    const files = [...e.target.files];
+    setVideoFiles(files);
+
+    // Generate video thumbnails
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setVideoPreviews(previews);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (pdfFiles.length === 0 || videoFiles.length === 0) {
       alert("Please upload at least one PDF and one video");
       return;
@@ -39,14 +46,18 @@ const LessonUpload = () => {
       formData.append(key, form[key]);
     }
 
+    const tagsArray = form.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    tagsArray.forEach((tag) => formData.append("tags[]", tag));
+
     pdfFiles.forEach((file) => formData.append("pdfUrl", file));
     videoFiles.forEach((file) => formData.append("videoUrl", file));
 
     try {
       setLoading(true);
-      const res = await axiosInstance.post("/lessons/upload-lesson", formData, {
+      await axiosInstance.post("/lessons/upload-lesson", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       alert("Lesson uploaded successfully!");
       setForm({
         title: "",
@@ -58,9 +69,10 @@ const LessonUpload = () => {
       });
       setPdfFiles([]);
       setVideoFiles([]);
+      setVideoPreviews([]);
     } catch (err) {
-      console.error(err);
-      alert("Error uploading lesson");
+      console.log(err);
+      alert(err.response?.data?.message || "Error uploading lesson");
     } finally {
       setLoading(false);
     }
@@ -113,7 +125,7 @@ const LessonUpload = () => {
           onChange={handleChange}
           className="border p-2 rounded"
           required
-        ></textarea>
+        />
         <input
           type="text"
           name="tags"
@@ -123,6 +135,7 @@ const LessonUpload = () => {
           className="border p-2 rounded"
         />
 
+        {/* PDFs */}
         <div>
           <label className="font-semibold">Upload PDFs:</label>
           <input
@@ -132,8 +145,16 @@ const LessonUpload = () => {
             onChange={handlePdfChange}
             className="mt-1"
           />
+          {pdfFiles.length > 0 && (
+            <ul className="mt-2 text-sm text-gray-600">
+              {pdfFiles.map((file, i) => (
+                <li key={i}>{file.name}</li>
+              ))}
+            </ul>
+          )}
         </div>
 
+        {/* Videos */}
         <div>
           <label className="font-semibold">Upload Videos:</label>
           <input
@@ -143,11 +164,23 @@ const LessonUpload = () => {
             onChange={handleVideoChange}
             className="mt-1"
           />
+          {videoFiles.length > 0 && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {videoPreviews.map((src, i) => (
+                <video
+                  key={i}
+                  src={src}
+                  className="w-full h-32 object-cover rounded border"
+                  controls
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <button
           type="submit"
-          className="bg-blue-500 text-white p-2 rounded mt-3"
+          className="bg-blue-500 text-white p-2 rounded mt-3 disabled:opacity-50"
           disabled={loading}
         >
           {loading ? "Uploading..." : "Upload Lesson"}

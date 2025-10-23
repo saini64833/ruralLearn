@@ -13,7 +13,7 @@ const LessonDetail = () => {
   const fetchLesson = async () => {
     try {
       const res = await axiosInstance.get(`/lessons/${id}`);
-      setLesson(res.data?.message);
+      setLesson(res.data?.data);
     } catch (err) {
       console.log(err);
       alert("Error fetching lesson");

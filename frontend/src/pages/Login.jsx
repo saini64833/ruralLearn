@@ -28,15 +28,14 @@ const Login = () => {
 
       const res = await axiosInstance.post("/users/login", payload);
       console.log("response data:", res.data);
-      console.log(res.deta)
-      const user = res.data?.message.user;
+      const user = res.data?.data.user;
       console.log(user);
       if (!user) {
         throw new Error("User info missing in response");
       }
       // Save user info & token
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("accessToken", res.data.message?.accessToken);
+      localStorage.setItem("accessToken", res.data.data?.accessToken);
 
       // Role-based navigation
       switch (user.role) {
@@ -53,7 +52,7 @@ const Login = () => {
           navigate("/");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.data || "Login failed");
     } finally {
       setLoading(false);
     }

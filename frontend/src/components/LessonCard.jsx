@@ -7,51 +7,49 @@ const LessonCard = ({ lesson }) => {
   const [likesCount, setLikesCount] = useState(lesson.likes?.length || 0);
   const [comments, setComments] = useState(lesson.comments || []);
   const [commentText, setCommentText] = useState("");
-  const [activeVideo, setActiveVideo] = useState(0); // index of current video
+  const [activeVideo, setActiveVideo] = useState(0);
 
-  // ✅ Handle Like
+  // Toggle Like
   const handleLike = async () => {
     try {
       const res = await axiosInstance.put(`/lessons/${lesson._id}/like`);
-      setLikesCount(res.data.likesCount || likesCount + 1);
+      setLikesCount(res.data?.data?.likesCount || likesCount);
     } catch (err) {
-      console.log("Like failed:", err);
+      console.error("Like failed:", err);
     }
   };
 
-  // ✅ Handle Comment
+  // Add Comment
   const handleComment = async () => {
     if (!commentText.trim()) return;
     try {
       const res = await axiosInstance.post(`/lessons/${lesson._id}/comment`, {
         text: commentText,
       });
-      setComments(res.data.comments || []);
+      setComments(res.data?.data || []);
       setCommentText("");
     } catch (err) {
-      console.log("Comment failed:", err);
+      console.error("Comment failed:", err);
     }
   };
 
   return (
     <div className="border border-gray-200 rounded-2xl shadow-md p-4 bg-white">
       {/* Title & Description */}
-      <h2 className="text-lg font-bold text-indigo-700 mb-1">
-        {lesson.title}
-      </h2>
-      <p className="text-gray-700 mb-3 line-clamp-2">
-        {lesson.description}
-      </p>
+      <h2 className="text-lg font-bold text-indigo-700 mb-1">{lesson.title}</h2>
+      <p className="text-gray-700 mb-3 line-clamp-2">{lesson.description}</p>
 
       {/* Video Player */}
-      {lesson.videoUrl?.length > 0 ? (
+      {lesson.videos?.length > 0 ? (
         <div className="mb-3">
-          <VideoPlayer videoUrl={lesson.videoUrl[activeVideo]} />
+          <VideoPlayer
+            videoUrls={lesson.videos.map((v) => v.videoFile)}
+          />
 
-          {/* Video Navigation */}
-          {lesson.videoUrl.length > 1 && (
+          {/* Video Navigation Dots */}
+          {lesson.videos.length > 1 && (
             <div className="flex justify-center gap-2 mt-2">
-              {lesson.videoUrl.map((_, index) => (
+              {lesson.videos.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setActiveVideo(index)}
@@ -66,9 +64,7 @@ const LessonCard = ({ lesson }) => {
           )}
         </div>
       ) : (
-        <p className="text-gray-400 italic text-sm mb-3">
-          No videos uploaded.
-        </p>
+        <p className="text-gray-400 italic text-sm mb-3">No videos uploaded.</p>
       )}
 
       {/* PDFs */}
@@ -128,14 +124,10 @@ const LessonCard = ({ lesson }) => {
         {/* Comments List */}
         <div className="max-h-32 overflow-y-auto border-t pt-2">
           {comments.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">
-              No comments yet.
-            </p>
+            <p className="text-sm text-gray-400 italic">No comments yet.</p>
           ) : (
             comments.map((c, i) => (
-              <p key={i} className="text-sm border-b py-1">
-                {c.text}
-              </p>
+              <p key={i} className="text-sm border-b py-1">{c.text}</p>
             ))
           )}
         </div>

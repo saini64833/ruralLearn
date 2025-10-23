@@ -12,7 +12,7 @@ const Dashboard = () => {
       try {
         // 1️⃣ Get the logged-in user info
         const res = await axiosInstance.get("/users/me");
-        const userData = res.data.message;
+        const userData = res.data?.data;
         setForm(userData);
 
         // 2️⃣ If teacher, fetch extra stats

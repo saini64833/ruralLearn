@@ -21,10 +21,13 @@ const lessonsSchema = new Schema(
       type: String,
       required: true,
     },
-    videoUrl: {
-      type: [String], //cloudinary
-      required: true,
-    },
+    Videos: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Video",
+        // required: true,
+      },
+    ],
     pdfUrl: {
       type: [String], //cloudinary
       required: true,
