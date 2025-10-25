@@ -41,7 +41,7 @@ const VideoPlayer = ({ videoUrls = [] }) => {
   }, [currentIndex]);
 
   return (
-    <div className="w-full rounded-lg overflow-hidden shadow-md bg-black">
+    <div className="w-full rounded-lg overflow-hidden shadow-md bg-black mt-2">
       <video
         ref={videoRef}
         controls

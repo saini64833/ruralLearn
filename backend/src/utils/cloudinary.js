@@ -7,28 +7,50 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+/**
+ * Uploads a file to Cloudinary.
+ * Supports images, PDFs, and videos.
+ * For videos, generates a thumbnail automatically.
+ *
+ * @param {string} localFilePath - Local path of the file to upload
+ * @param {string} resourceType - "image", "video", or "raw" (PDF)
+ * @returns {object|null} - Returns Cloudinary response (secure_url, thumbnail, etc.) or null
+ */
+const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
   try {
     if (!localFilePath) {
       console.warn("No file path provided for Cloudinary upload");
       return null;
     }
 
-    console.log("Uploading to Cloudinary:", localFilePath);
+    console.log(`Uploading to Cloudinary (${resourceType}):`, localFilePath);
 
-    const res = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
-    });
+    const options = { resource_type: resourceType };
 
+    // If it's a video, generate thumbnail automatically
+    if (resourceType === "video") {
+      options.eager = [
+        { width: 300, height: 200, crop: "thumb", format: "jpg" },
+      ];
+    }
+
+    const res = await cloudinary.uploader.upload(localFilePath, options);
+
+    // Remove local file after successful upload
     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
 
-    return res.secure_url; 
+    // For videos, attach thumbnail URL if generated
+    if (resourceType === "video" && res.eager?.length > 0) {
+      res.thumbnail_url = res.eager[0].secure_url;
+    }
+
+    return res;
   } catch (error) {
     console.error(
       "Cloudinary upload failed for",
       localFilePath,
       "Error:",
-      error || "Unknown error"
+      error
     );
     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
     return null;

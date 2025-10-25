@@ -13,7 +13,7 @@ const LessonUpload = () => {
 
   const [pdfFiles, setPdfFiles] = useState([]);
   const [videoFiles, setVideoFiles] = useState([]);
-  const [videoPreviews, setVideoPreviews] = useState([]); // for thumbnails
+  const [videoPreviews, setVideoPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -28,7 +28,6 @@ const LessonUpload = () => {
     const files = [...e.target.files];
     setVideoFiles(files);
 
-    // Generate video thumbnails
     const previews = files.map((file) => URL.createObjectURL(file));
     setVideoPreviews(previews);
   };
@@ -46,15 +45,22 @@ const LessonUpload = () => {
       formData.append(key, form[key]);
     }
 
-    const tagsArray = form.tags.split(",").map((t) => t.trim()).filter(Boolean);
-    tagsArray.forEach((tag) => formData.append("tags[]", tag));
+    // Split tags by comma
+    const tagsArray = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    tagsArray.forEach((tag) => formData.append("tags", tag));
 
+    // PDFs
     pdfFiles.forEach((file) => formData.append("pdfUrl", file));
-    videoFiles.forEach((file) => formData.append("videoUrl", file));
+
+    // Videos: match backend field name 'videoFile'
+    videoFiles.forEach((file) => formData.append("videoFile", file));
 
     try {
       setLoading(true);
-      await axiosInstance.post("/lessons/upload-lesson", formData, {
+      const res = await axiosInstance.post("/lessons/upload-lesson", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -71,7 +77,7 @@ const LessonUpload = () => {
       setVideoFiles([]);
       setVideoPreviews([]);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert(err.response?.data?.message || "Error uploading lesson");
     } finally {
       setLoading(false);

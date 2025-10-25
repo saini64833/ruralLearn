@@ -5,29 +5,32 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
-// Upload Lesson
 const uploadLesson = asyncHandler(async (req, res) => {
-  if (req.user.role !== "Teacher") throw new ApiError(401, "Only teachers can upload lessons");
+  if (req.user.role !== "Teacher")
+    throw new ApiError(401, "Only teachers can upload lessons");
 
   const { title, description, language, subject, content, tags } = req.body;
 
-  if ([title, description, language, subject, content].some(f => !f?.trim()))
+  if ([title, description, language, subject, content].some((f) => !f?.trim()))
     throw new ApiError(400, "All fields are required");
 
   const lessonTags = Array.isArray(tags) ? tags : tags?.split(",") || [];
 
-  // PDFs
-  const pdfFiles = req.files?.pdfUrl;
-  if (!pdfFiles || pdfFiles.length === 0) throw new ApiError(400, "At least one PDF is required");
+  const pdfFiles = req.files?.pdfUrl || [];
+
+  if (pdfFiles.length === 0)
+    throw new ApiError(400, "At least one PDF is required");
 
   const pdfUrls = [];
   for (const file of pdfFiles) {
-    const uploadedPdf = await uploadOnCloudinary(file.path);
-    if (!uploadedPdf?.secure_url) throw new ApiError(500, "Failed to upload PDF");
+    console.log("Uploading PDF:", file.path);
+    const uploadedPdf = await uploadOnCloudinary(file.path, "raw");
+    if (!uploadedPdf?.secure_url)
+      throw new ApiError(500, "Failed to upload PDF");
     pdfUrls.push(uploadedPdf.secure_url);
   }
 
-  // Create lesson first
+
   const lesson = await Lessons.create({
     title,
     description,
@@ -37,16 +40,19 @@ const uploadLesson = asyncHandler(async (req, res) => {
     tags: lessonTags,
     pdfUrl: pdfUrls,
     createdBy: req.user._id,
+    videos:[]
   });
 
-
-  const videoFiles = req.files?.videoUrl;
-  if (!videoFiles || videoFiles.length === 0) throw new ApiError(400, "At least one video is required");
+  const videoFiles = req.files?.videoFile || [];
+  if (videoFiles.length === 0)
+    throw new ApiError(400, "At least one video is required");
 
   const videoIds = [];
   for (const file of videoFiles) {
-    const uploadedVideo = await uploadOnCloudinary(file.path);
-    if (!uploadedVideo?.secure_url) throw new ApiError(500, "Video upload failed");
+    console.log("Uploading Video:", file.path);
+    const uploadedVideo = await uploadOnCloudinary(file.path, "video"); 
+    if (!uploadedVideo?.secure_url)
+      throw new ApiError(500, "Video upload failed");
 
     const videoDoc = await Video.create({
       videoFile: uploadedVideo.secure_url,
@@ -60,15 +66,18 @@ const uploadLesson = asyncHandler(async (req, res) => {
     videoIds.push(videoDoc._id);
   }
 
-  lesson.videos = videoIds;
+  lesson.videos = videoIds; 
   await lesson.save();
 
-  res.status(201).json(new ApiResponse(201, lesson, "Lesson uploaded successfully"));
+  res
+    .status(201)
+    .json(new ApiResponse(201, lesson, "Lesson uploaded successfully"));
 });
 
-// Update Lesson
+
 const updateLesson = asyncHandler(async (req, res) => {
-  if (req.user.role !== "Teacher") throw new ApiError(401, "Only teachers can update lessons");
+  if (req.user.role !== "Teacher")
+    throw new ApiError(401, "Only teachers can update lessons");
 
   const { id } = req.params;
   const lesson = await Lessons.findById(id);
@@ -76,7 +85,6 @@ const updateLesson = asyncHandler(async (req, res) => {
   if (lesson.createdBy.toString() !== req.user._id.toString())
     throw new ApiError(403, "You cannot update this lesson");
 
-  // Update PDFs
   if (req.files?.pdfUrl?.length > 0) {
     for (const file of req.files.pdfUrl) {
       const uploadedPdf = await uploadOnCloudinary(file.path);
@@ -84,7 +92,6 @@ const updateLesson = asyncHandler(async (req, res) => {
     }
   }
 
-  // Update Videos
   if (req.files?.videoUrl?.length > 0) {
     for (const file of req.files.videoUrl) {
       const uploadedVideo = await uploadOnCloudinary(file.path);
@@ -103,12 +110,14 @@ const updateLesson = asyncHandler(async (req, res) => {
   }
 
   await lesson.save();
-  res.status(200).json(new ApiResponse(200, lesson, "Lesson updated successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, lesson, "Lesson updated successfully"));
 });
 
-// Delete Lesson
 const deleteLesson = asyncHandler(async (req, res) => {
-  if (req.user.role !== "Teacher") throw new ApiError(403, "Only teachers can delete lessons");
+  if (req.user.role !== "Teacher")
+    throw new ApiError(403, "Only teachers can delete lessons");
 
   const { id } = req.params;
   const lesson = await Lessons.findById(id);
@@ -122,7 +131,6 @@ const deleteLesson = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, {}, "Lesson deleted successfully"));
 });
 
-// Comment
 const commentLesson = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
@@ -136,37 +144,45 @@ const commentLesson = asyncHandler(async (req, res) => {
   res.status(201).json(new ApiResponse(201, lesson.comments, "Comment added"));
 });
 
-// Like
 const likeLesson = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const lesson = await Lessons.findById(id);
   if (!lesson) throw new ApiError(404, "Lesson not found");
 
   const userId = req.user._id.toString();
-  const index = lesson.likes.findIndex(like => like.toString() === userId);
+  const index = lesson.likes.findIndex((like) => like.toString() === userId);
 
   if (index === -1) lesson.likes.push(userId);
   else lesson.likes.splice(index, 1);
 
   await lesson.save();
-  res.status(200).json(new ApiResponse(200, { likesCount: lesson.likes.length }, "Like toggled"));
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, { likesCount: lesson.likes.length }, "Like toggled")
+    );
 });
 
-// Get All Lessons
 const getAllLessons = asyncHandler(async (req, res) => {
-  const lessons = await Lessons.find().populate("videos").populate("createdBy", "name email");
+  const lessons = await Lessons.find()
+    .populate("videos")
+    .populate("createdBy", "name email");
   if (!lessons?.length) throw new ApiError(404, "No lessons found");
-
-  res.status(200).json(new ApiResponse(200, lessons, "Lessons fetched successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, lessons, "Lessons fetched successfully"));
 });
 
-// Get Lesson by ID
 const getLessonById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const lesson = await Lessons.findById(id).populate("videos").populate("createdBy", "name email");
+  const lesson = await Lessons.findById(id)
+    .populate("videos")
+    .populate("createdBy", "name email");
   if (!lesson) throw new ApiError(404, "Lesson not found");
 
-  res.status(200).json(new ApiResponse(200, lesson, "Lesson fetched successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, lesson, "Lesson fetched successfully"));
 });
 
 export {

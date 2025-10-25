@@ -21,11 +21,10 @@ const lessonsSchema = new Schema(
       type: String,
       required: true,
     },
-    Videos: [
+    videos: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Video",
-        // required: true,
       },
     ],
     pdfUrl: {

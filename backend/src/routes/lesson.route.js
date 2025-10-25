@@ -19,7 +19,7 @@ router.post(
   "/upload-lesson",
   verifyJwt,
   roleVerification(["Teacher"]),
-  upload.fields([{ name: "pdfUrl" }, { name: "videoUrl" }]),
+  upload.fields([{ name: "pdfUrl" }, { name: "videoFile" }]),
   uploadLesson
 );
 

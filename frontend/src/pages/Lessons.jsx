@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
+import VideoPlayer from "../components/VideoPlayer.jsx";
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -15,10 +16,7 @@ const Lessons = () => {
         const res = await axiosInstance.get("/lessons/get-all-lessons");
         setLessons(res.data?.data || []);
       } catch (err) {
-        console.log(
-          "Failed to fetch lessons:",
-          err.response?.data || err.message
-        );
+        console.log("Failed to fetch lessons:", err.response?.data?.message || err.message);
       }
     };
     fetchLessons();
@@ -60,17 +58,17 @@ const Lessons = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => {
-            const firstVideo = lesson.videos?.[0];
+            const videoUrls = lesson.videos?.map((v) => v.videoFile) || [];
+            const thumbnails = lesson.videos?.map((v) => v.thumbnail) || [];
             return (
               <div
                 key={lesson._id}
-                onClick={() => navigate(`/lessons/${lesson._id}`)}
-                className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden"
+                className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden p-2"
               >
                 <LessonCard
                   lesson={{
                     ...lesson,
-                    thumbnail: firstVideo?.thumbnail || "/default-video.png",
+                    thumbnail: thumbnails[0] || "/default-video.png",
                   }}
                 />
               </div>

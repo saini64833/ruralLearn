@@ -10,9 +10,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await axiosInstance.post("/users/login", data);
       if (res.data.success) {
-        const token = res.data.data.accessToken;
-        localStorage.setItem("accessToken", token);
-        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const accessToken = res.data.data.accessToken;
+        localStorage.setItem("accessToken", accessToken);
+        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         setUser(res.data.data.user);
       } else {
         throw new Error(res.data.message || "Login failed");
@@ -41,9 +41,9 @@ export const AuthProvider = ({ children }) => {
     axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
     try {
       const res = await axiosInstance.get("/users/me");
-      setUser(res.data.message); // user object is in message
+      setUser(res.data?.data); 
     } catch (err) {
-      console.log("Failed to fetch user:", err.response?.data || err.message);
+      console.log("Failed to fetch user:", err.response?.message || err.message);
       setUser(null);
     }
   };

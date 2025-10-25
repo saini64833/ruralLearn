@@ -17,11 +17,11 @@ const Dashboard = () => {
 
         // 2️⃣ If teacher, fetch extra stats
         if (userData.role === "teacher") {
-          const statsRes = await axiosInstance.get(`/teacher/stats/${userData._id}`);
+          const statsRes = await axiosInstance.get(`/users/me`);
           setTeacherData(statsRes.data);
         }
       } catch (err) {
-        console.error("Dashboard fetch error:", err);
+        console.log("Dashboard fetch error:", err);
       }
     };
 
