@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
-import VideoPlayer from "../components/VideoPlayer.jsx";
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -16,7 +15,10 @@ const Lessons = () => {
         const res = await axiosInstance.get("/lessons/get-all-lessons");
         setLessons(res.data?.data || []);
       } catch (err) {
-        console.log("Failed to fetch lessons:", err.response?.data?.message || err.message);
+        console.log(
+          "Failed to fetch lessons:",
+          err.response?.data?.message || err.message
+        );
       }
     };
     fetchLessons();
@@ -54,24 +56,25 @@ const Lessons = () => {
 
       {/* Lessons Grid */}
       {lessons.length === 0 ? (
-        <p className="text-gray-500 text-center mt-10">No lessons available.</p>
+        <p className="text-gray-500 text-center mt-10">
+          No lessons available.
+        </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => {
             const videoUrls = lesson.videos?.map((v) => v.videoFile) || [];
             const thumbnails = lesson.videos?.map((v) => v.thumbnail) || [];
+
             return (
-              <div
+              <LessonCard
                 key={lesson._id}
-                className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden p-2"
-              >
-                <LessonCard
-                  lesson={{
-                    ...lesson,
-                    thumbnail: thumbnails[0] || "/default-video.png",
-                  }}
-                />
-              </div>
+                lesson={{
+                  ...lesson,
+                  videoUrl: videoUrls[0] || null,
+                  thumbnail: thumbnails[0] || "/default-video.png",
+                }}
+                onClick={() => navigate(`/lessons/${lesson._id}`)}
+              />
             );
           })}
         </div>

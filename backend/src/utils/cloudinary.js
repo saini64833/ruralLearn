@@ -7,15 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-/**
- * Uploads a file to Cloudinary.
- * Supports images, PDFs, and videos.
- * For videos, generates a thumbnail automatically.
- *
- * @param {string} localFilePath - Local path of the file to upload
- * @param {string} resourceType - "image", "video", or "raw" (PDF)
- * @returns {object|null} - Returns Cloudinary response (secure_url, thumbnail, etc.) or null
- */
+
 const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
   try {
     if (!localFilePath) {
@@ -25,16 +17,14 @@ const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
 
     console.log(`Uploading to Cloudinary (${resourceType}):`, localFilePath);
 
-    const options = { resource_type: resourceType };
-
-    // If it's a video, generate thumbnail automatically
+    const options = { resource_type: resourceType }
     if (resourceType === "video") {
       options.eager = [
         { width: 300, height: 200, crop: "thumb", format: "jpg" },
       ];
     }
 
-    const res = await cloudinary.uploader.upload(localFilePath, options);
+    const res = await cloudinary.uploader.upload(localFilePath, {options,type:"upload"});
 
     // Remove local file after successful upload
     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);

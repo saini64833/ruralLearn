@@ -42,15 +42,18 @@ const VideoPlayer = ({ videoUrls = [] }) => {
 
   return (
     <div className="w-full rounded-lg overflow-hidden shadow-md bg-black mt-2">
-      <video
-        ref={videoRef}
-        controls
-        onEnded={handleEnded}
-        className="w-full h-64 object-cover"
-      >
-        <source src={videoUrls[currentIndex]} type="video/mp4" />
-        Your browser does not support HTML5 video.
-      </video>
+      {/* Aspect-ratio wrapper prevents cropping */}
+      <div className="aspect-video bg-black">
+        <video
+          ref={videoRef}
+          controls
+          onEnded={handleEnded}
+          className="w-full h-full object-contain bg-black"
+        >
+          <source src={videoUrls[currentIndex]} type="video/mp4" />
+          Your browser does not support HTML5 video.
+        </video>
+      </div>
 
       {/* Controls */}
       <div className="flex justify-center items-center gap-4 py-3 bg-gray-900 text-white">
@@ -77,7 +80,9 @@ const VideoPlayer = ({ videoUrls = [] }) => {
               key={i}
               onClick={() => setCurrentIndex(i)}
               className={`cursor-pointer px-3 py-2 rounded-md mb-1 text-sm ${
-                i === currentIndex ? "bg-indigo-600 text-white" : "hover:bg-gray-200"
+                i === currentIndex
+                  ? "bg-indigo-600 text-white"
+                  : "hover:bg-gray-200"
               }`}
             >
               Video {i + 1}

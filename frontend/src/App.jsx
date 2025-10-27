@@ -17,7 +17,7 @@ import LessonDetail from "./pages/LessonDetails.jsx";
 import LessonUpload from "./pages/LessonUpload.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-
+import LessonUpdate from "./pages/LessonUpdate.jsx";
 const AppWrapper = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -66,6 +66,14 @@ const AppWrapper = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lessons/update/:id"
+          element={
+            <ProtectedRoute>
+              <LessonUpdate />
             </ProtectedRoute>
           }
         />

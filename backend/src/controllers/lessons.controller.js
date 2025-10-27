@@ -30,7 +30,6 @@ const uploadLesson = asyncHandler(async (req, res) => {
     pdfUrls.push(uploadedPdf.secure_url);
   }
 
-
   const lesson = await Lessons.create({
     title,
     description,
@@ -40,7 +39,7 @@ const uploadLesson = asyncHandler(async (req, res) => {
     tags: lessonTags,
     pdfUrl: pdfUrls,
     createdBy: req.user._id,
-    videos:[]
+    videos: [],
   });
 
   const videoFiles = req.files?.videoFile || [];
@@ -50,7 +49,7 @@ const uploadLesson = asyncHandler(async (req, res) => {
   const videoIds = [];
   for (const file of videoFiles) {
     console.log("Uploading Video:", file.path);
-    const uploadedVideo = await uploadOnCloudinary(file.path, "video"); 
+    const uploadedVideo = await uploadOnCloudinary(file.path, "video");
     if (!uploadedVideo?.secure_url)
       throw new ApiError(500, "Video upload failed");
 
@@ -66,14 +65,13 @@ const uploadLesson = asyncHandler(async (req, res) => {
     videoIds.push(videoDoc._id);
   }
 
-  lesson.videos = videoIds; 
+  lesson.videos = videoIds;
   await lesson.save();
 
   res
     .status(201)
     .json(new ApiResponse(201, lesson, "Lesson uploaded successfully"));
 });
-
 
 const updateLesson = asyncHandler(async (req, res) => {
   if (req.user.role !== "Teacher")
@@ -84,7 +82,9 @@ const updateLesson = asyncHandler(async (req, res) => {
   if (!lesson) throw new ApiError(404, "Lesson not found");
   if (lesson.createdBy.toString() !== req.user._id.toString())
     throw new ApiError(403, "You cannot update this lesson");
-
+  console.log(pdfUrl)
+  lesson.pdfUrl += lesson.pdfUrl || [];
+  lesson.videos += lesson.videos || [];
   if (req.files?.pdfUrl?.length > 0) {
     for (const file of req.files.pdfUrl) {
       const uploadedPdf = await uploadOnCloudinary(file.path);

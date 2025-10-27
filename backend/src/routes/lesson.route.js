@@ -25,7 +25,7 @@ router.post(
 
 // Update a lesson
 router.put(
-  "/:id",
+  "/update/:id",
   verifyJwt,
   roleVerification(["Teacher"]),
   upload.fields([{ name: "pdfUrl" }, { name: "videoUrl" }]),

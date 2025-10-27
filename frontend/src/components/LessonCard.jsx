@@ -3,14 +3,15 @@ import { FaThumbsUp, FaComment, FaFilePdf } from "react-icons/fa";
 import axiosInstance from "../api/axiosInstance.js";
 import VideoPlayer from "./VideoPlayer.jsx";
 
-const LessonCard = ({ lesson }) => {
+const LessonCard = ({ lesson, onClick }) => {
   const [likesCount, setLikesCount] = useState(lesson.likes?.length || 0);
   const [comments, setComments] = useState(lesson.comments || []);
   const [commentText, setCommentText] = useState("");
   const [activeVideo, setActiveVideo] = useState(0);
 
   // Toggle Like
-  const handleLike = async () => {
+  const handleLike = async (e) => {
+    e.stopPropagation(); 
     try {
       const res = await axiosInstance.put(`/lessons/${lesson._id}/like`);
       setLikesCount(res.data?.data?.likesCount || likesCount);
@@ -20,7 +21,8 @@ const LessonCard = ({ lesson }) => {
   };
 
   // Add Comment
-  const handleComment = async () => {
+  const handleComment = async (e) => {
+    e.stopPropagation(); 
     if (!commentText.trim()) return;
     try {
       const res = await axiosInstance.post(`/lessons/${lesson._id}/comment`, {
@@ -34,7 +36,10 @@ const LessonCard = ({ lesson }) => {
   };
 
   return (
-    <div className="border border-gray-200 rounded-2xl shadow-md p-4 bg-white">
+    <div
+      onClick={onClick}
+      className="border border-gray-200 rounded-2xl shadow-md p-4 bg-white hover:shadow-lg transition cursor-pointer"
+    >
       {/* Title & Description */}
       <h2 className="text-lg font-bold text-indigo-700 mb-1">{lesson.title}</h2>
       <p className="text-gray-700 mb-3 line-clamp-2">{lesson.description}</p>
@@ -42,17 +47,16 @@ const LessonCard = ({ lesson }) => {
       {/* Video Player */}
       {lesson.videos?.length > 0 ? (
         <div className="mb-3">
-          <VideoPlayer
-            videoUrls={lesson.videos.map((v) => v.videoFile)}
-          />
-
-          {/* Video Navigation Dots */}
+          <VideoPlayer videoUrls={lesson.videos.map((v) => v.videoFile)} />
           {lesson.videos.length > 1 && (
             <div className="flex justify-center gap-2 mt-2">
               {lesson.videos.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setActiveVideo(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveVideo(index);
+                  }}
                   className={`w-3 h-3 rounded-full ${
                     activeVideo === index
                       ? "bg-indigo-600"
@@ -80,6 +84,7 @@ const LessonCard = ({ lesson }) => {
                   href={pdf}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                   className="text-blue-500 hover:underline"
                 >
                   PDF {i + 1}
@@ -91,7 +96,10 @@ const LessonCard = ({ lesson }) => {
       )}
 
       {/* Likes & Comments */}
-      <div className="border-t pt-3 mt-3">
+      <div
+        className="border-t pt-3 mt-3"
+        onClick={(e) => e.stopPropagation()} s
+      >
         <div className="flex items-center gap-4 mb-2">
           <button
             onClick={handleLike}
@@ -127,7 +135,9 @@ const LessonCard = ({ lesson }) => {
             <p className="text-sm text-gray-400 italic">No comments yet.</p>
           ) : (
             comments.map((c, i) => (
-              <p key={i} className="text-sm border-b py-1">{c.text}</p>
+              <p key={i} className="text-sm border-b py-1">
+                {c.text}
+              </p>
             ))
           )}
         </div>
