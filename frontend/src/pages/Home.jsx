@@ -29,7 +29,7 @@ const Home = () => {
               Get Started
             </Link>
             <Link
-              to="/lessons"
+              to="/lessons/get-all-lessons"
               className="px-6 py-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-semibold transition"
             >
               Explore Lessons

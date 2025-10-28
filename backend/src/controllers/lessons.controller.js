@@ -82,21 +82,26 @@ const updateLesson = asyncHandler(async (req, res) => {
   if (!lesson) throw new ApiError(404, "Lesson not found");
   if (lesson.createdBy.toString() !== req.user._id.toString())
     throw new ApiError(403, "You cannot update this lesson");
-  console.log(pdfUrl)
-  lesson.pdfUrl += lesson.pdfUrl || [];
-  lesson.videos += lesson.videos || [];
+
+  // --- PDF Update ---
+  let newPdfUrls = [];
   if (req.files?.pdfUrl?.length > 0) {
     for (const file of req.files.pdfUrl) {
-      const uploadedPdf = await uploadOnCloudinary(file.path);
-      if (uploadedPdf?.secure_url) lesson.pdfUrl.push(uploadedPdf.secure_url);
+      const uploadedPdf = await uploadOnCloudinary(file.path, "raw");
+      if (uploadedPdf?.secure_url) newPdfUrls.push(uploadedPdf.secure_url);
     }
+
+    if (!Array.isArray(lesson.pdfUrl)) lesson.pdfUrl = [];
+    lesson.pdfUrl.push(...newPdfUrls);
   }
 
-  if (req.files?.videoUrl?.length > 0) {
-    for (const file of req.files.videoUrl) {
-      const uploadedVideo = await uploadOnCloudinary(file.path);
+  // --- Video Update ---
+  let newVideoIds = [];
+  if (req.files?.videoFile?.length > 0) {
+    for (const file of req.files.videoFile) {
+      const uploadedVideo = await uploadOnCloudinary(file.path, "video");
       if (uploadedVideo?.secure_url) {
-        const videoDoc = await Video.create({
+        const video = new Video({
           videoFile: uploadedVideo.secure_url,
           thumbnail: uploadedVideo.thumbnail_url || "",
           title: file.originalname,
@@ -104,17 +109,20 @@ const updateLesson = asyncHandler(async (req, res) => {
           owner: req.user._id,
           lesson: lesson._id,
         });
-        lesson.videos.push(videoDoc._id);
+        const videoDoc = await video.save();
+        newVideoIds.push(...videoDoc._id);
       }
     }
+
+    if (!Array.isArray(lesson.videos)) lesson.videos = [];
+    lesson.videos.push(newVideoIds);
   }
-
   await lesson.save();
-  res
-    .status(200)
-    .json(new ApiResponse(200, lesson, "Lesson updated successfully"));
-});
 
+  return res
+    .status(200)
+    .json(new ApiResponse(200, lesson, "Lesson updated successfully "));
+});
 const deleteLesson = asyncHandler(async (req, res) => {
   if (req.user.role !== "Teacher")
     throw new ApiError(403, "Only teachers can delete lessons");

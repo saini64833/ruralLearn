@@ -1,8 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout =async () => {
+    await logout(); 
+    navigate("/"); 
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -18,18 +24,24 @@ const Navbar = () => {
           {/* Teacher Links */}
           {user && user.role === "Teacher" && (
             <>
-              {/* <Link to="/lessons/upload-lesson" className="hover:text-indigo-600">Upload Lessons</Link>
-              <Link to="/upload-quiz" className="hover:text-indigo-600">Upload Quiz</Link> */}
-              <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">View Lessons</Link>
-              <Link to="/view-quiz" className="hover:text-indigo-600">View Quiz</Link>
+              <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">
+                View Lessons
+              </Link>
+              <Link to="/view-quiz" className="hover:text-indigo-600">
+                View Quiz
+              </Link>
             </>
           )}
 
           {/* Student Links */}
           {user && user.role === "Student" && (
             <>
-              <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">Lessons</Link>
-              <Link to="/quizzes" className="hover:text-indigo-600">Quizzes</Link>
+              <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">
+                Lessons
+              </Link>
+              <Link to="/quizzes" className="hover:text-indigo-600">
+                Quizzes
+              </Link>
             </>
           )}
 
@@ -49,7 +61,7 @@ const Navbar = () => {
           {/* Logout button for logged-in users */}
           {user && (
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
             >
               Logout

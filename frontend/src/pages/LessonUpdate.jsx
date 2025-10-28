@@ -15,29 +15,30 @@ const UpdateLesson = () => {
   const [loading, setLoading] = useState(false);
   const [notAllowed, setNotAllowed] = useState(false);
 
-  // Fetch lesson
   useEffect(() => {
     const fetchLesson = async () => {
       try {
-        const { data } = await axiosInstance.get(`/lessons/${id}`);
-        const lessonData = data?.data;
+        const { lesson } = await axiosInstance.get(`/lessons/${id}`);
+        const lessonData = lesson.data?.data;
+        console.log(lessonData)
         setLesson(lessonData);
 
-        // Check ownership (backend also checks this)
         if (lessonData.createdBy?._id !== user?._id) {
           setNotAllowed(true);
         }
       } catch (error) {
-        console.error("Error fetching lesson:", error);
         toast.error("Failed to load lesson details");
       }
     };
+
     if (user) fetchLesson();
   }, [id, user]);
+
 
   const handlePdfChange = (e) => setPdfFiles([...e.target.files]);
   const handleVideoChange = (e) => setVideoFiles([...e.target.files]);
 
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (notAllowed) return toast.error("You cannot update this lesson.");
@@ -48,33 +49,35 @@ const UpdateLesson = () => {
     }
 
     const formData = new FormData();
+
+
     pdfFiles.forEach((file) => formData.append("pdfUrl", file));
-    videoFiles.forEach((file) => formData.append("videoUrl", file));
+    videoFiles.forEach((file) => formData.append("videoFile", file));
 
     setLoading(true);
     try {
-      const res = await axiosInstance.put(`/lessons/update/${id}`, formData, {
+      await axiosInstance.put(`/lessons/update/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       toast.success("Lesson updated successfully!");
-      navigate(`/lesson/update/${id}`);
+      navigate(`/lessons/${id}`);
     } catch (err) {
-      console.log("Update failed:", err.message);
       toast.error(err.response?.data?.message || "Error updating lesson");
     } finally {
       setLoading(false);
     }
   };
 
-  // Restrict view if not owner
+ 
   if (notAllowed) {
     return (
       <div className="text-center mt-20 text-red-600 font-semibold text-lg">
-         You are not allowed to update this lesson.
+        You are not allowed to update this lesson.
       </div>
     );
   }
+
 
   return (
     <div className="max-w-2xl mx-auto bg-white shadow-md p-6 mt-10 rounded-xl">
@@ -114,7 +117,7 @@ const UpdateLesson = () => {
           />
         </div>
 
-        {/* Preview */}
+        {/* Preview Files */}
         {(pdfFiles.length > 0 || videoFiles.length > 0) && (
           <div className="bg-gray-100 p-3 rounded-md mb-4">
             <h3 className="font-semibold mb-2">Files to Upload:</h3>
@@ -125,7 +128,7 @@ const UpdateLesson = () => {
             ))}
             {videoFiles.map((file, i) => (
               <p key={`video-${i}`} className="text-sm text-gray-700">
-                 {file.name}
+                🎬 {file.name}
               </p>
             ))}
           </div>

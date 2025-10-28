@@ -1,5 +1,11 @@
 import React, { useRef, useEffect, useState } from "react";
-import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaExpand } from "react-icons/fa";
+import {
+  FaPlay,
+  FaPause,
+  FaStepBackward,
+  FaStepForward,
+  FaExpand,
+} from "react-icons/fa";
 
 const VideoPlayer = ({ videoUrls = [] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -12,7 +18,6 @@ const VideoPlayer = ({ videoUrls = [] }) => {
     else videoRef.current.play();
     setIsPlaying(!isPlaying);
   };
-
   const handleNext = () => {
     if (currentIndex < videoUrls.length - 1) setCurrentIndex(currentIndex + 1);
   };
@@ -23,9 +28,12 @@ const VideoPlayer = ({ videoUrls = [] }) => {
 
   const handleFullscreen = () => {
     if (!videoRef.current) return;
-    if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen();
-    else if (videoRef.current.webkitRequestFullscreen) videoRef.current.webkitRequestFullscreen();
-    else if (videoRef.current.msRequestFullscreen) videoRef.current.msRequestFullscreen();
+    if (videoRef.current.requestFullscreen)
+      videoRef.current.requestFullscreen();
+    else if (videoRef.current.webkitRequestFullscreen)
+      videoRef.current.webkitRequestFullscreen();
+    else if (videoRef.current.msRequestFullscreen)
+      videoRef.current.msRequestFullscreen();
   };
 
   const handleEnded = () => {
@@ -36,7 +44,6 @@ const VideoPlayer = ({ videoUrls = [] }) => {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
-      videoRef.current.play().catch(() => setIsPlaying(false));
     }
   }, [currentIndex]);
 
@@ -63,7 +70,10 @@ const VideoPlayer = ({ videoUrls = [] }) => {
         <button onClick={togglePlay}>
           {isPlaying ? <FaPause /> : <FaPlay />}
         </button>
-        <button onClick={handleNext} disabled={currentIndex === videoUrls.length - 1}>
+        <button
+          onClick={handleNext}
+          disabled={currentIndex === videoUrls.length - 1}
+        >
           <FaStepForward />
         </button>
         <button onClick={handleFullscreen}>

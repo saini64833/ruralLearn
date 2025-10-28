@@ -18,13 +18,15 @@ import LessonUpload from "./pages/LessonUpload.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import LessonUpdate from "./pages/LessonUpdate.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx"; 
+
 const AppWrapper = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 300);
+    const timer = setTimeout(() => setLoading(false), 0);
     return () => clearTimeout(timer);
   }, [location]);
 
@@ -84,9 +86,11 @@ const AppWrapper = () => {
 
 function App() {
   return (
-    <Router>
-      <AppWrapper />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppWrapper />
+      </Router>
+    </AuthProvider>
   );
 }
 

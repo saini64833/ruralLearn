@@ -7,7 +7,7 @@ import {
   likeLesson,
   commentLesson,
   getAllLessons,
-   getLessonById,
+  getLessonById,
 } from "../controllers/lessons.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import { roleVerification } from "../middlewares/role.middlewares.js";
@@ -28,7 +28,7 @@ router.put(
   "/update/:id",
   verifyJwt,
   roleVerification(["Teacher"]),
-  upload.fields([{ name: "pdfUrl" }, { name: "videoUrl" }]),
+  upload.fields([{ name: "pdfUrl" }, { name: "videoFile" }]),
   updateLesson
 );
 
