@@ -41,7 +41,7 @@ const Login = () => {
           navigate("/lessons/get-all-lessons");
           break;
         case "Parent":
-          navigate("/parent/progress");
+          navigate("/users/me");
           break;
         default:
           navigate("/");

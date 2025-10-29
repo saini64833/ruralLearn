@@ -20,27 +20,22 @@ const Dashboard = () => {
         const userInfo = res.data?.data;
         setUserData(userInfo);
 
-        // Fetch data based on role
         if (userInfo.role === "Teacher") {
-          // Fetch all lessons by teacher
           const lessonsRes = await axiosInstance.get("/lessons/get-all-lessons");
           const teacherLessons = lessonsRes.data?.data.filter(
             (l) => l.createdBy._id === userInfo._id
           );
           setLessons(teacherLessons || []);
 
-          // Fetch all quizzes by teacher
           const quizzesRes = await axiosInstance.get("/quizzes/get-all-quizzes");
           const teacherQuizzes = quizzesRes.data?.data.filter(
             (q) => q.createdBy._id === userInfo._id
           );
           setQuizzes(teacherQuizzes || []);
         } else if (userInfo.role === "Student") {
-          // Fetch student progress
           const progressRes = await axiosInstance.get("/progress/my-progress");
           setProgress(progressRes.data?.data);
         } else if (userInfo.role === "Parent") {
-          // Fetch children progress (assuming parent-child mapping exists)
           const childrenRes = await axiosInstance.get("/progress/children-progress");
           setChildrenProgress(childrenRes.data?.data || []);
         }
@@ -52,6 +47,36 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  const handleUploadLesson = () => navigate("/lessons/upload-lesson");
+  const handleUploadQuiz = () => navigate("/quizzes/upload-quiz");
+  const handleUpdateLesson = (lessonId) => navigate(`/lessons/update/${lessonId}`);
+  const handleUpdateQuiz = (quizId) => navigate(`/quizzes/update/${quizId}`);
+
+  // 🗑️ DELETE HANDLERS
+  const handleDeleteLesson = async (lessonId) => {
+    if (!window.confirm("Are you sure you want to delete this lesson?")) return;
+    try {
+      await axiosInstance.delete(`/lessons/${lessonId}`);
+      setLessons((prev) => prev.filter((l) => l._id !== lessonId));
+      alert("Lesson deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+      alert("Failed to delete lesson.");
+    }
+  };
+
+  const handleDeleteQuiz = async (quizId) => {
+    if (!window.confirm("Are you sure you want to delete this quiz?")) return;
+    try {
+      await axiosInstance.delete(`/quizzes/${quizId}`);
+      setQuizzes((prev) => prev.filter((q) => q._id !== quizId));
+      alert("Quiz deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting quiz:", error);
+      alert("Failed to delete quiz.");
+    }
+  };
+
   if (!userData) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -59,11 +84,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  const handleUploadLesson = () => navigate("/lessons/upload-lesson");
-  const handleUploadQuiz = () => navigate("/quizzes/upload-quiz");
-  const handleUpdateLesson = (lessonId) => navigate(`/lessons/update/${lessonId}`);
-  const handleUpdateQuiz = (quizId) => navigate(`/quizzes/update/${quizId}`);
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
@@ -134,16 +154,28 @@ const Dashboard = () => {
                           />
                         )}
                         <div>
-                          <p className="font-semibold text-gray-800">{lesson.title}</p>
-                          <p className="text-gray-600 text-sm">{lesson.subject}</p>
+                          <p className="font-semibold text-gray-800">
+                            {lesson.title}
+                          </p>
+                          <p className="text-gray-600 text-sm">
+                            {lesson.subject}
+                          </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleUpdateLesson(lesson._id)}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                      >
-                        Update
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdateLesson(lesson._id)}
+                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={() => handleDeleteLesson(lesson._id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </li>
                   );
                 })}
@@ -169,12 +201,20 @@ const Dashboard = () => {
                         Questions: {quiz.questions?.length || 0}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleUpdateQuiz(quiz._id)}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                    >
-                      Update
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleUpdateQuiz(quiz._id)}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                      >
+                        Update
+                      </button>
+                      <button
+                        onClick={() => handleDeleteQuiz(quiz._id)}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -184,7 +224,7 @@ const Dashboard = () => {
           </>
         )}
 
-        {/* STUDENT DASHBOARD */}
+        {/* STUDENT & PARENT SECTIONS UNCHANGED */}
         {userData.role === "Student" && progress && (
           <div>
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Your Progress</h3>
@@ -196,7 +236,6 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* PARENT DASHBOARD */}
         {userData.role === "Parent" && (
           <div>
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">

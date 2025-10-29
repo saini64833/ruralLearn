@@ -20,7 +20,6 @@ const UpdateLesson = () => {
       try {
         const { lesson } = await axiosInstance.get(`/lessons/${id}`);
         const lessonData = lesson.data?.data;
-        console.log(lessonData)
         setLesson(lessonData);
 
         if (lessonData.createdBy?._id !== user?._id) {

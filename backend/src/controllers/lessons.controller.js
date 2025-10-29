@@ -83,7 +83,6 @@ const updateLesson = asyncHandler(async (req, res) => {
   if (lesson.createdBy.toString() !== req.user._id.toString())
     throw new ApiError(403, "You cannot update this lesson");
 
-  // --- PDF Update ---
   let newPdfUrls = [];
   if (req.files?.pdfUrl?.length > 0) {
     for (const file of req.files.pdfUrl) {
@@ -92,10 +91,9 @@ const updateLesson = asyncHandler(async (req, res) => {
     }
 
     if (!Array.isArray(lesson.pdfUrl)) lesson.pdfUrl = [];
-    lesson.pdfUrl.push(...newPdfUrls);
+    lesson.pdfUrl = [...lesson.pdfUrl, ...newPdfUrls];
   }
 
-  // --- Video Update ---
   let newVideoIds = [];
   if (req.files?.videoFile?.length > 0) {
     for (const file of req.files.videoFile) {
@@ -110,19 +108,21 @@ const updateLesson = asyncHandler(async (req, res) => {
           lesson: lesson._id,
         });
         const videoDoc = await video.save();
-        newVideoIds.push(...videoDoc._id);
+        newVideoIds.push(videoDoc._id);
       }
     }
 
     if (!Array.isArray(lesson.videos)) lesson.videos = [];
-    lesson.videos.push(newVideoIds);
+    lesson.videos = [...lesson.videos, ...newVideoIds];
   }
+
   await lesson.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, lesson, "Lesson updated successfully "));
+    .json(new ApiResponse(200, lesson, "Lesson updated successfully"));
 });
+
 const deleteLesson = asyncHandler(async (req, res) => {
   if (req.user.role !== "Teacher")
     throw new ApiError(403, "Only teachers can delete lessons");
