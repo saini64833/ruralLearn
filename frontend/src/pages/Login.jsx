@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../api/axiosInstance.js";
+import { useAuth } from "../context/AuthContext"; 
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); 
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,24 +21,18 @@ const Login = () => {
       return;
     }
 
+    // Prepare payload
+    const payload = emailOrUsername.includes("@")
+      ? { email: emailOrUsername, password }
+      : { userName: emailOrUsername, password };
+
     try {
-      // Prepare payload
-      const payload = emailOrUsername.includes("@")
-        ? { email: emailOrUsername, password }
-        : { userName: emailOrUsername, password };
+      await login(payload);
 
-      const res = await axiosInstance.post("/users/login", payload);
-      console.log("response data:", res.data);
-      const user = res.data?.data.user;
-      console.log(user);
-      if (!user) {
-        throw new Error("User info missing in response");
-      }
-      // Save user info & token
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("accessToken", res.data.data?.accessToken);
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) throw new Error("User info missing");
 
-      // Role-based navigation
+
       switch (user.role) {
         case "Teacher":
           navigate("/lessons/get-all-lessons");
@@ -45,14 +40,15 @@ const Login = () => {
         case "Student":
           navigate("/lessons/get-all-lessons");
           break;
-        // case "Parent":
-        //   navigate("/parent/progress");
-        //   break;
+        case "Parent":
+          navigate("/parent/progress");
+          break;
         default:
           navigate("/");
       }
     } catch (err) {
-      setError(err.response?.data?.data || "Login failed");
+      console.error(err);
+      setError("Invalid credentials or login failed");
     } finally {
       setLoading(false);
     }

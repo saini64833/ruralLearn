@@ -7,7 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-
+// Generic uploader that handles images, videos, PDFs, etc.
 const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
   try {
     if (!localFilePath) {
@@ -17,35 +17,30 @@ const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
 
     console.log(`Uploading to Cloudinary (${resourceType}):`, localFilePath);
 
-    const options = { resource_type: resourceType }
+
+    const options = { resource_type: resourceType };
+
     if (resourceType === "video") {
-      options.eager = [
-        { width: 300, height: 200, crop: "thumb", format: "jpg" },
-      ];
+      options.eager = [{ width: 300, height: 200, crop: "thumb", format: "jpg" }];
     }
 
-    const res = await cloudinary.uploader.upload(localFilePath, {options,type:"upload"});
+    const res = await cloudinary.uploader.upload(localFilePath, options);
 
-    // Remove local file after successful upload
     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
 
-    // For videos, attach thumbnail URL if generated
     if (resourceType === "video" && res.eager?.length > 0) {
       res.thumbnail_url = res.eager[0].secure_url;
     }
 
     return res;
   } catch (error) {
-    console.error(
-      "Cloudinary upload failed for",
-      localFilePath,
-      "Error:",
-      error
-    );
+    console.error("Cloudinary upload failed for", localFilePath, "Error:", error);
     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
     return null;
   }
 };
+
+
 const deleteFromCloudinary = async (publicId) => {
   try {
     await cloudinary.uploader.destroy(publicId);
@@ -53,4 +48,5 @@ const deleteFromCloudinary = async (publicId) => {
     console.error("Cloudinary delete error:", error.message);
   }
 };
+
 export { uploadOnCloudinary, deleteFromCloudinary };

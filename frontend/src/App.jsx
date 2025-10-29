@@ -5,6 +5,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useEffect, useState } from "react";
+
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
 
@@ -18,7 +19,6 @@ import LessonUpload from "./pages/LessonUpload.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import LessonUpdate from "./pages/LessonUpdate.jsx";
-import { AuthProvider } from "./context/AuthContext.jsx"; 
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -26,14 +26,14 @@ const AppWrapper = () => {
 
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 0);
+    const timer = setTimeout(() => setLoading(false), 300);
     return () => clearTimeout(timer);
   }, [location]);
 
   return (
     <>
       {loading && <Loader />}
-      <Navbar />
+      <Navbar /> 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
@@ -47,6 +47,7 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/lessons/upload-lesson"
           element={
@@ -55,6 +56,7 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/lessons/:id"
           element={
@@ -63,6 +65,7 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/users/me"
           element={
@@ -71,6 +74,7 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/lessons/update/:id"
           element={
@@ -86,11 +90,9 @@ const AppWrapper = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppWrapper />
-      </Router>
-    </AuthProvider>
+    <Router>
+      <AppWrapper />
+    </Router>
   );
 }
 

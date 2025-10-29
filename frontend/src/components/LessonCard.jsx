@@ -98,7 +98,7 @@ const LessonCard = ({ lesson, onClick }) => {
       {/* Likes & Comments */}
       <div
         className="border-t pt-3 mt-3"
-        onClick={(e) => e.stopPropagation()} s
+        onClick={(e) => e.stopPropagation()} 
       >
         <div className="flex items-center gap-4 mb-2">
           <button

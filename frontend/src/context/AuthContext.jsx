@@ -12,9 +12,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (data) => {
     try {
       const res = await axiosInstance.post("/users/login", data);
+      console.log(res.data.success) 
       if (res.data.success) {
         const accessToken = res.data.data.accessToken;
-        const userData = res.data.data.user;
+        console.log(accessToken)
+        const userData = res.data?.data.user;
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("user", JSON.stringify(userData));
 
