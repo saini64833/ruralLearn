@@ -49,6 +49,7 @@ const updateQuestion = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, newQuestion, "question Updated Successfully"));
 });
 
+const deleteQuestion = asyncHandler(async (req, res) => {});
 
 
-export { uploadQuestion, updateQuestion };
+export { uploadQuestion, updateQuestion, deleteQuestion };

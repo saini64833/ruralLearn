@@ -166,7 +166,7 @@ const Home = () => {
             Get Started
           </Link>
           <Link
-            to="/lessons"
+            to="/lessons/get-all-lessons"
             className="px-8 py-3 bg-transparent border border-white rounded-lg font-semibold hover:bg-white hover:text-indigo-700 transition"
           >
             Explore Lessons

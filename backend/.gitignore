@@ -25,11 +25,7 @@ coverage/
 .tmp/
 .cache/
 
-# Uploads and temp files
-public/temp/
-uploads/
-tmp/
-temp/
+
 
 # System and editor files
 .DS_Store
@@ -46,7 +42,6 @@ Desktop.ini
 # MongoDB dumps or backups
 dump/
 *.bson
-*.json
 
 # Optional: lock files (choose one)
 # package-lock.json
