@@ -27,7 +27,7 @@ const Navbar = () => {
               <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">
                 View Lessons
               </Link>
-              <Link to="/view-quiz" className="hover:text-indigo-600">
+              <Link to="/quizzes/get-all-quizzes" className="hover:text-indigo-600">
                 View Quiz
               </Link>
             </>
@@ -39,7 +39,7 @@ const Navbar = () => {
               <Link to="/lessons/get-all-lessons" className="hover:text-indigo-600">
                 Lessons
               </Link>
-              <Link to="/quizzes" className="hover:text-indigo-600">
+              <Link to="/quizzes/get-all-quizzes" className="hover:text-indigo-600">
                 Quizzes
               </Link>
             </>

@@ -8,22 +8,31 @@ import { useEffect, useState } from "react";
 
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
-// Pages
+//  Pages
 import Home from "./pages/Home.jsx";
 import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+
+//  Lesson Pages
 import Lessons from "./pages/Lessons.jsx";
 import LessonDetail from "./pages/LessonDetails.jsx";
 import LessonUpload from "./pages/LessonUpload.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
 import LessonUpdate from "./pages/LessonUpdate.jsx";
+
+//  Quiz Pages
+import QuizePage from "./pages/QuizPage.jsx";
+import QuizeUpdate from "./pages/Quizeupdate.jsx";
+import QuizeUpload from "./pages/quizeUpload.jsx";
+import QuizeDetail from "./pages/QuizeDetail.jsx";
 
 const AppWrapper = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
+  // Show Loader on route change
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), 300);
@@ -33,12 +42,14 @@ const AppWrapper = () => {
   return (
     <>
       {loading && <Loader />}
-      <Navbar /> 
+      <Navbar />
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
+        {/* Protected Routes */}
         <Route
           path="/lessons/get-all-lessons"
           element={
@@ -47,7 +58,6 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/lessons/upload-lesson"
           element={
@@ -56,7 +66,6 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/lessons/:id"
           element={
@@ -65,21 +74,55 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path="/users/me"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-
         <Route
           path="/lessons/update/:id"
           element={
             <ProtectedRoute>
               <LessonUpdate />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Quiz Routes */}
+        <Route
+          path="/quizzes/get-all-quizzes"
+          element={
+            <ProtectedRoute>
+              <QuizePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quizzes/upload-quize"
+          element={
+            <ProtectedRoute>
+              <QuizeUpload />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quizzes/update/:id"
+          element={
+            <ProtectedRoute>
+              <QuizeUpdate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quizzes/:id"
+          element={
+            <ProtectedRoute>
+              <QuizeDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        {/*  Dashboard */}
+        <Route
+          path="/users/me"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
             </ProtectedRoute>
           }
         />

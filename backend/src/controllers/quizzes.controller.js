@@ -5,6 +5,7 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
 const uploadQuize = asyncHandler(async (req, res) => {
+  console.log(req.body);
   const {
     title,
     subject,
@@ -19,7 +20,7 @@ const uploadQuize = asyncHandler(async (req, res) => {
   } = req.body;
 
   if (
-    !title?.trim()||
+    !title?.trim() ||
     !subject?.trim() ||
     !description?.trim() ||
     duration === undefined ||
@@ -28,7 +29,7 @@ const uploadQuize = asyncHandler(async (req, res) => {
   ) {
     throw new ApiError(400, "All quiz fields are required!");
   }
-  console.log(title)
+  console.log(title);
 
   if (!questionText?.trim()) {
     throw new ApiError(400, "Question text is required!");
@@ -174,4 +175,49 @@ const updateQuize = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, updatedQuiz, "Quiz updated successfully!"));
 });
-export { uploadQuize,updateQuize };
+const getAllQuizzes = asyncHandler(async (req, res) => {
+  const quizzes = await Quize.find().sort({ createdAt: -1 });
+
+  if (!quizzes || quizzes.length === 0) {
+    return res.status(404).json(new ApiResponse(404, [], "No quizzes found"));
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, quizzes, "All quizzes fetched successfully"));
+});
+
+const getQuizeById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    throw new ApiError(401, "id is required");
+  }
+  const quize = await Quize.findById(id);
+
+  if (!quize) {
+    throw new ApiError(404, "quize does not found!!");
+  }
+  return res
+    .status(201)
+    .json(new ApiResponse(201, quize, "quize get successfully!!"));
+});
+
+const deleteQuize = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    throw new ApiError(401, "id is required!!");
+  }
+  const quize = await Quize.findById(id);
+  if (!quize) {
+    throw new ApiError(404, "quize does not found!!");
+  }
+  if (quize.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(401, "you can not delete this quize!!");
+  }
+  await Question.deleteMany({ quize: quize.id });
+  await Quize.findByIdAndDelete(id);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "quize deleted Successfully!!"));
+});
+export { uploadQuize, updateQuize, getAllQuizzes, getQuizeById, deleteQuize };
