@@ -24,15 +24,16 @@ import LessonUpdate from "./pages/LessonUpdate.jsx";
 
 //  Quiz Pages
 import QuizePage from "./pages/QuizPage.jsx";
+import QuizeUpload from "./pages/QuizeUpload.jsx";
 import QuizeUpdate from "./pages/Quizeupdate.jsx";
-import QuizeUpload from "./pages/quizeUpload.jsx";
 import QuizeDetail from "./pages/QuizeDetail.jsx";
+import AttemptQuiz from "./pages/AttemptQuiz.jsx";
 
 const AppWrapper = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
-  // Show Loader on route change
+  // ✅ Show Loader on route change
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), 300);
@@ -44,12 +45,12 @@ const AppWrapper = () => {
       {loading && <Loader />}
       <Navbar />
       <Routes>
-        {/* Public Routes */}
+        {/* 🏠 Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Protected Routes */}
+        {/* 📚 Lesson Routes */}
         <Route
           path="/lessons/get-all-lessons"
           element={
@@ -83,7 +84,7 @@ const AppWrapper = () => {
           }
         />
 
-        {/* Quiz Routes */}
+        {/* 🧠 Quiz Routes */}
         <Route
           path="/quizzes/get-all-quizzes"
           element={
@@ -109,15 +110,23 @@ const AppWrapper = () => {
           }
         />
         <Route
-          path="/quizzes/:id"
+          path="/quizzes/quize/:id" 
           element={
             <ProtectedRoute>
               <QuizeDetail />
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/quizzes/attempt/:id" 
+          element={
+            <ProtectedRoute>
+              <AttemptQuiz />
+            </ProtectedRoute>
+          }
+        />
 
-        {/*  Dashboard */}
+        {/* 👤 Dashboard */}
         <Route
           path="/users/me"
           element={

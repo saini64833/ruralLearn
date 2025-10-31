@@ -10,7 +10,7 @@ const QuizeUpdate = () => {
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        const res = await axiosInstance.get(`quizzes/${id}`);
+        const res = await axiosInstance.get(`/quizzes/quize/${id}`);
         setQuiz(res.data.data);
       } catch (err) {
         console.error(err);

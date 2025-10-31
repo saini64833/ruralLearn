@@ -3,7 +3,7 @@ import { Quize } from "../models/quize.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-
+import {QuizeResult } from "../models/quizeResult.model.js"
 const uploadQuize = asyncHandler(async (req, res) => {
   console.log(req.body);
   const {
@@ -86,7 +86,8 @@ const uploadQuize = asyncHandler(async (req, res) => {
 });
 
 const updateQuize = asyncHandler(async (req, res) => {
-  const { quizeId } = req.params;
+  const { id } = req.params;
+  console.log(id)
   const {
     title,
     subject,
@@ -98,7 +99,7 @@ const updateQuize = asyncHandler(async (req, res) => {
     questions,
   } = req.body;
 
-  const existingQuiz = await Quize.findById(quizeId);
+  const existingQuiz = await Quize.findById(id);
   if (!existingQuiz) throw new ApiError(404, "Quiz not found!");
 
   if (req.user?._id.toString() !== existingQuiz.createdBy.toString()) {
@@ -167,7 +168,7 @@ const updateQuize = asyncHandler(async (req, res) => {
 
   await existingQuiz.save();
 
-  const updatedQuiz = await Quize.findById(quizeId)
+  const updatedQuiz = await Quize.findById(id)
     .populate("questions")
     .populate("createdBy", "name email");
 
@@ -220,4 +221,8 @@ const deleteQuize = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, {}, "quize deleted Successfully!!"));
 });
+
+const getQuizeResponseById=asyncHandler(async(req,res)=>{
+  
+})
 export { uploadQuize, updateQuize, getAllQuizzes, getQuizeById, deleteQuize };

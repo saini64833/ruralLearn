@@ -10,7 +10,7 @@ const QuizeDetail = () => {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const res = await axiosInstance.get(`quizzes/${id}`);
+        const res = await axiosInstance.get(`/quizzes/quize/${id}`);
         setQuiz(res.data.data);
       } catch (err) {
         console.error("Error fetching quiz:", err);
@@ -47,7 +47,7 @@ const QuizeDetail = () => {
       ))}
 
       <button
-        onClick={() => navigate(`/quizzes/update/${quiz._id}`)}
+        onClick={() => navigate(`/quizzes/update-quize/${quiz._id}`)}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
       >
         Edit Quiz
