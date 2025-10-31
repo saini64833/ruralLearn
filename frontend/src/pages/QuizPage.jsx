@@ -42,7 +42,7 @@ const QuizePage = () => {
         </h1>
 
         {/* ✅ Only show Upload button if user is a teacher */}
-        {user?.role === "teacher" && (
+        {user?.role === "Teacher" && (
           <button
             onClick={() => navigate("/quizzes/upload-quize")}
             className="flex items-center gap-2 bg-indigo-600 text-white font-semibold px-5 py-2 rounded-full shadow-md hover:bg-indigo-700 transition-all"

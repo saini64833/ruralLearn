@@ -3,7 +3,7 @@ import { Quize } from "../models/quize.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-import {QuizeResult } from "../models/quizeResult.model.js"
+import { QuizeResult } from "../models/quizeResult.model.js";
 const uploadQuize = asyncHandler(async (req, res) => {
   console.log(req.body);
   const {
@@ -87,7 +87,7 @@ const uploadQuize = asyncHandler(async (req, res) => {
 
 const updateQuize = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  console.log(id)
+  console.log(id);
   const {
     title,
     subject,
@@ -190,39 +190,58 @@ const getAllQuizzes = asyncHandler(async (req, res) => {
 
 const getQuizeById = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
   if (!id) {
-    throw new ApiError(401, "id is required");
+    throw new ApiError(400, "Quiz ID is required");
   }
-  const quize = await Quize.findById(id);
+
+  const quize = await Quize.findById(id)
+    .populate({
+      path: "questions",
+      select: "questionText options correctAnswerIndex",
+    })
+    .populate({
+      path: "createdBy",
+      select: "name email role",
+    });
 
   if (!quize) {
-    throw new ApiError(404, "quize does not found!!");
+    throw new ApiError(404, "Quiz not found!");
   }
+
   return res
-    .status(201)
-    .json(new ApiResponse(201, quize, "quize get successfully!!"));
+    .status(200)
+    .json(new ApiResponse(200, quize, "Quiz fetched successfully!"));
 });
 
 const deleteQuize = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
   if (!id) {
-    throw new ApiError(401, "id is required!!");
+    throw new ApiError(400, "Quiz ID is required!");
   }
+
   const quize = await Quize.findById(id);
   if (!quize) {
-    throw new ApiError(404, "quize does not found!!");
+    throw new ApiError(404, "Quiz not found!");
   }
+
   if (quize.createdBy.toString() !== req.user._id.toString()) {
-    throw new ApiError(401, "you can not delete this quize!!");
+    throw new ApiError(403, "You are not authorized to delete this quiz!");
   }
-  await Question.deleteMany({ quize: quize.id });
+
+  if (quize.questions && quize.questions.length > 0) {
+    await Question.deleteMany({ _id: { $in: quize.questions } });
+  }
+
   await Quize.findByIdAndDelete(id);
+
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "quize deleted Successfully!!"));
+    .json(
+      new ApiResponse(200, {}, "Quiz and its questions deleted successfully!")
+    );
 });
 
-const getQuizeResponseById=asyncHandler(async(req,res)=>{
-  
-})
+const getQuizeResponseById = asyncHandler(async (req, res) => {});
 export { uploadQuize, updateQuize, getAllQuizzes, getQuizeById, deleteQuize };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import axiosInstance from "../api/axiosInstance";
+import { useAuth } from "../context/AuthContext.jsx";
+import axiosInstance from "../api/axiosInstance.js";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -76,7 +76,7 @@ const Dashboard = () => {
   const handleDeleteQuiz = async (quizId) => {
     if (!window.confirm("Are you sure you want to delete this quiz?")) return;
     try {
-      await axiosInstance.delete(`/quizzes/quize/${quizId}`);
+      await axiosInstance.delete(`/quizzes/quize-delete/${quizId}`);
       setQuizzes((prev) => prev.filter((q) => q._id !== quizId));
       alert("Quiz deleted successfully!");
     } catch (error) {

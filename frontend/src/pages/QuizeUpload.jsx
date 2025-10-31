@@ -60,7 +60,7 @@ const QuizeUpload = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (user?.role !== "teacher") {
+    if (user?.role !== "Teacher") {
       toast.error("Only teachers can upload quizzes!");
       return;
     }
@@ -99,7 +99,7 @@ const QuizeUpload = () => {
     );
   }
 
-  if (user.role !== "teacher") {
+  if (user.role !== "Teacher") {
     return (
       <div className="flex justify-center items-center h-screen">
         <h2 className="text-xl font-semibold text-red-600">
@@ -248,8 +248,8 @@ const QuizeUpload = () => {
             </button>
           </section>
 
-          {/*    Upload Button — visible only for teachers */}
-          {user?.role === "teacher" && (
+          {/*  Upload Button — visible only for teachers */}
+          {user?.role === "Teacher" && (
             <button
               type="submit"
               className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700"

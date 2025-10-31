@@ -45,12 +45,12 @@ const AppWrapper = () => {
       {loading && <Loader />}
       <Navbar />
       <Routes>
-        {/* 🏠 Public Routes */}
+        {/*  Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* 📚 Lesson Routes */}
+        {/* Lesson Routes */}
         <Route
           path="/lessons/get-all-lessons"
           element={
@@ -84,7 +84,7 @@ const AppWrapper = () => {
           }
         />
 
-        {/* 🧠 Quiz Routes */}
+        {/*  Quiz Routes */}
         <Route
           path="/quizzes/get-all-quizzes"
           element={
@@ -102,7 +102,7 @@ const AppWrapper = () => {
           }
         />
         <Route
-          path="/quizzes/update/:id"
+          path="/quizzes/update-quize/:id"
           element={
             <ProtectedRoute>
               <QuizeUpdate />

@@ -24,10 +24,6 @@ const questionSchema = new Schema(
         message: "correctAnswerIndex must be a valid index in options array",
       },
     },
-    quize:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"Quize"
-    }
   },
   { timestamps: true }
 );
