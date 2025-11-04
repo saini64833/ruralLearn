@@ -41,21 +41,16 @@ const LessonUpload = () => {
     }
 
     const formData = new FormData();
-    for (let key in form) {
-      formData.append(key, form[key]);
-    }
+    for (let key in form) formData.append(key, form[key]);
 
-    // Split tags by comma
     const tagsArray = form.tags
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+
     tagsArray.forEach((tag) => formData.append("tags", tag));
 
-    // PDFs
     pdfFiles.forEach((file) => formData.append("pdfUrl", file));
-
-    // Videos: match backend field name 'videoFile'
     videoFiles.forEach((file) => formData.append("videoFile", file));
 
     try {
@@ -85,14 +80,14 @@ const LessonUpload = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto px-4 py-6">
       <h1 className="text-3xl font-semibold mb-6 text-gray-800">
         Upload Lesson
       </h1>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-lg p-6 space-y-5 border"
+        className="bg-white shadow-md rounded-lg p-4 sm:p-6 space-y-5 border overflow-hidden"
       >
         {/* Basic Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -178,7 +173,7 @@ const LessonUpload = () => {
             accept=".pdf"
             multiple
             onChange={handlePdfChange}
-            className="border p-2 rounded"
+            className="border p-2 rounded w-full"
           />
           {pdfFiles.length > 0 && (
             <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
@@ -197,16 +192,16 @@ const LessonUpload = () => {
             accept="video/*"
             multiple
             onChange={handleVideoChange}
-            className="border p-2 rounded"
+            className="border p-2 rounded w-full"
           />
 
           {videoFiles.length > 0 && (
-            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
               {videoPreviews.map((src, i) => (
                 <video
                   key={i}
                   src={src}
-                  className="w-full h-32 object-cover rounded border"
+                  className="w-full aspect-video object-cover rounded border"
                   controls
                 />
               ))}
