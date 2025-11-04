@@ -78,75 +78,97 @@ const UpdateLesson = () => {
   }
 
 
-  return (
-    <div className="max-w-2xl mx-auto bg-white shadow-md p-6 mt-10 rounded-xl">
-      <h1 className="text-2xl font-bold mb-4 text-center text-indigo-600">
-        Update Lesson
-      </h1>
+return (
+  <div className="max-w-4xl mx-auto mt-10 p-4">
+    <div className="bg-gray-50 border rounded-2xl shadow-sm p-8">
+      <header className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">
+          Update Lesson Resources
+        </h1>
+        <p className="text-gray-600 text-sm mt-1">
+          Upload PDFs or Videos to update the lesson
+        </p>
+      </header>
 
+      {/* Lesson Information */}
       {lesson && (
-        <div className="mb-4">
-          <p className="font-semibold">Lesson Title:</p>
-          <p className="text-gray-700">{lesson.title}</p>
+        <div className="p-4 bg-white border rounded-lg shadow-sm mb-6">
+          <p className="text-sm text-gray-500">Lesson Title</p>
+          <p className="text-lg font-semibold text-gray-800 mt-1">
+            {lesson.title}
+          </p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        {/* PDF Upload */}
-        <div className="mb-4">
-          <label className="block font-medium mb-2">Add PDFs</label>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* PDFs Upload */}
+        <div className="bg-white border rounded-lg p-5 shadow-sm">
+          <label className="flex items-center gap-2 font-semibold text-gray-700 mb-3">
+            📄 PDF Files
+          </label>
           <input
             type="file"
-            multiple
             accept=".pdf"
+            multiple
             onChange={handlePdfChange}
-            className="block w-full border border-gray-300 rounded-md p-2"
+            className="w-full border border-gray-300 p-3 rounded-md bg-gray-100 focus:ring-2 focus:ring-blue-500"
           />
+
+          {pdfFiles.length > 0 && (
+            <div className="mt-3 bg-gray-100 p-3 rounded-lg border">
+              <p className="font-semibold text-gray-700 mb-2 text-sm">
+                Selected PDF Files:
+              </p>
+              {pdfFiles.map((file, index) => (
+                <p className="text-gray-600 text-sm mb-1" key={index}>
+                  📎 {file.name}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Video Upload */}
-        <div className="mb-4">
-          <label className="block font-medium mb-2">Add Videos</label>
+        {/* Videos Upload */}
+        <div className="bg-white border rounded-lg p-5 shadow-sm">
+          <label className="flex items-center gap-2 font-semibold text-gray-700 mb-3">
+            🎬 Video Files
+          </label>
           <input
             type="file"
-            multiple
             accept="video/*"
+            multiple
             onChange={handleVideoChange}
-            className="block w-full border border-gray-300 rounded-md p-2"
+            className="w-full border border-gray-300 p-3 rounded-md bg-gray-100 focus:ring-2 focus:ring-blue-500"
           />
+
+          {videoFiles.length > 0 && (
+            <div className="mt-3 bg-gray-100 p-3 rounded-lg border grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {videoFiles.map((file, index) => (
+                <div key={index} className="text-sm text-gray-700">
+                  🎞 {file.name.slice(0, 20)}...
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Preview Files */}
-        {(pdfFiles.length > 0 || videoFiles.length > 0) && (
-          <div className="bg-gray-100 p-3 rounded-md mb-4">
-            <h3 className="font-semibold mb-2">Files to Upload:</h3>
-            {pdfFiles.map((file, i) => (
-              <p key={`pdf-${i}`} className="text-sm text-gray-700">
-                📄 {file.name}
-              </p>
-            ))}
-            {videoFiles.map((file, i) => (
-              <p key={`video-${i}`} className="text-sm text-gray-700">
-                🎬 {file.name}
-              </p>
-            ))}
-          </div>
-        )}
-
+        {/* Submit Button */}
         <button
           type="submit"
-          disabled={loading}
-          className={`w-full py-2 rounded-md text-white ${
-            loading
+          disabled={loading || notAllowed}
+          className={`w-full py-3 rounded-md font-semibold text-white text-lg
+            ${loading || notAllowed
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
+              : "bg-blue-600 hover:bg-blue-700"}
+          `}
         >
-          {loading ? "Updating..." : "Update Lesson"}
+          {loading ? "Updating..." : "Save Updates"}
         </button>
       </form>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default UpdateLesson;

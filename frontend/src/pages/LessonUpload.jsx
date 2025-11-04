@@ -85,74 +85,103 @@ const LessonUpload = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Upload New Lesson</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input
-          type="text"
-          name="title"
-          placeholder="Title"
-          value={form.title}
-          onChange={handleChange}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          name="language"
-          placeholder="Language"
-          value={form.language}
-          onChange={handleChange}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          name="subject"
-          placeholder="Subject"
-          value={form.subject}
-          onChange={handleChange}
-          className="border p-2 rounded"
-          required
-        />
-        <textarea
-          name="content"
-          placeholder="Content"
-          value={form.content}
-          onChange={handleChange}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          name="tags"
-          placeholder="Tags (comma separated)"
-          value={form.tags}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800">
+        Upload Lesson
+      </h1>
 
-        {/* PDFs */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-md rounded-lg p-6 space-y-5 border"
+      >
+        {/* Basic Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col">
+            <label className="font-medium mb-1">Title *</label>
+            <input
+              type="text"
+              name="title"
+              className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+              value={form.title}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-medium mb-1">Language *</label>
+            <input
+              type="text"
+              name="language"
+              className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+              value={form.language}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-medium mb-1">Subject *</label>
+            <input
+              type="text"
+              name="subject"
+              className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+              value={form.subject}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-medium mb-1">Tags (comma separated)</label>
+            <input
+              type="text"
+              name="tags"
+              className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+              value={form.tags}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="flex flex-col">
+          <label className="font-medium mb-1">Description *</label>
+          <input
+            type="text"
+            name="description"
+            className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+            value={form.description}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col">
+          <label className="font-medium mb-1">Content *</label>
+          <textarea
+            name="content"
+            rows="4"
+            className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+            value={form.content}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        {/* PDF Upload */}
         <div>
-          <label className="font-semibold">Upload PDFs:</label>
+          <label className="font-semibold block mb-1">PDF Files *</label>
           <input
             type="file"
-            multiple
             accept=".pdf"
+            multiple
             onChange={handlePdfChange}
-            className="mt-1"
+            className="border p-2 rounded"
           />
           {pdfFiles.length > 0 && (
-            <ul className="mt-2 text-sm text-gray-600">
+            <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
               {pdfFiles.map((file, i) => (
                 <li key={i}>{file.name}</li>
               ))}
@@ -160,18 +189,19 @@ const LessonUpload = () => {
           )}
         </div>
 
-        {/* Videos */}
+        {/* Video Upload */}
         <div>
-          <label className="font-semibold">Upload Videos:</label>
+          <label className="font-semibold block mb-1">Video Files *</label>
           <input
             type="file"
-            multiple
             accept="video/*"
+            multiple
             onChange={handleVideoChange}
-            className="mt-1"
+            className="border p-2 rounded"
           />
+
           {videoFiles.length > 0 && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {videoPreviews.map((src, i) => (
                 <video
                   key={i}
@@ -186,8 +216,8 @@ const LessonUpload = () => {
 
         <button
           type="submit"
-          className="bg-blue-500 text-white p-2 rounded mt-3 disabled:opacity-50"
           disabled={loading}
+          className="bg-blue-600 text-white py-2 rounded-md w-full font-medium disabled:opacity-50"
         >
           {loading ? "Uploading..." : "Upload Lesson"}
         </button>
