@@ -243,5 +243,11 @@ const deleteQuize = asyncHandler(async (req, res) => {
     );
 });
 
-const getQuizeResponseById = asyncHandler(async (req, res) => {});
-export { uploadQuize, updateQuize, getAllQuizzes, getQuizeById, deleteQuize };
+const getQuizeResponseById = asyncHandler(async (req, res) => {
+  const {id}=req.params
+  if(!id){
+    throw new ApiError(401,"quize id not available")
+  }
+
+});
+export { uploadQuize, updateQuize, getAllQuizzes, getQuizeById, deleteQuize,getQuizeResponseById };

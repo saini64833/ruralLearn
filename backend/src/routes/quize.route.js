@@ -6,7 +6,8 @@ import {
   uploadQuize,
   getAllQuizzes,
   getQuizeById,
-  deleteQuize
+  deleteQuize,
+  getQuizeResponseById
 } from "../controllers/quizzes.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 const router = Router();
