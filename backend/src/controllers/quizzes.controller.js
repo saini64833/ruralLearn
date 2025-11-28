@@ -87,7 +87,7 @@ const uploadQuize = asyncHandler(async (req, res) => {
 
 const updateQuize = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  console.log(id);
+
   const {
     title,
     subject,
@@ -97,6 +97,7 @@ const updateQuize = asyncHandler(async (req, res) => {
     difficulty,
     tags,
     questions,
+    deletedQuestions,
   } = req.body;
 
   const existingQuiz = await Quize.findById(id);
@@ -112,6 +113,7 @@ const updateQuize = asyncHandler(async (req, res) => {
   if (duration !== undefined) existingQuiz.duration = Number(duration);
   if (totalMarks !== undefined) existingQuiz.totalMarks = Number(totalMarks);
   if (difficulty) existingQuiz.difficulty = difficulty.trim();
+
   if (tags) {
     existingQuiz.tags = Array.isArray(tags)
       ? tags
@@ -119,6 +121,18 @@ const updateQuize = asyncHandler(async (req, res) => {
         ? tags.split(",").map((t) => t.trim())
         : existingQuiz.tags;
   }
+
+  if (Array.isArray(deletedQuestions) && deletedQuestions.length > 0) {
+    for (const qId of deletedQuestions) {
+      await Question.findByIdAndDelete(qId); 
+    }
+
+
+    existingQuiz.questions = existingQuiz.questions.filter(
+      (qid) => !deletedQuestions.includes(qid.toString())
+    );
+  }
+
 
   if (Array.isArray(questions) && questions.length > 0) {
     const updatedQuestionIds = [];
@@ -143,19 +157,12 @@ const updateQuize = asyncHandler(async (req, res) => {
 
         if (updatedQ) updatedQuestionIds.push(updatedQ._id);
       } else {
-        if (
-          questionText &&
-          Array.isArray(options) &&
-          options.length >= 2 &&
-          correctAnswerIndex !== undefined
-        ) {
-          const newQ = await Question.create({
-            questionText,
-            options,
-            correctAnswerIndex,
-          });
-          updatedQuestionIds.push(newQ._id);
-        }
+        const newQ = await Question.create({
+          questionText,
+          options,
+          correctAnswerIndex,
+        });
+        updatedQuestionIds.push(newQ._id);
       }
     }
 
@@ -163,6 +170,7 @@ const updateQuize = asyncHandler(async (req, res) => {
       ...existingQuiz.questions.map((id) => id.toString()),
       ...updatedQuestionIds.map((id) => id.toString()),
     ]);
+
     existingQuiz.questions = Array.from(uniqueIds);
   }
 
@@ -176,6 +184,7 @@ const updateQuize = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, updatedQuiz, "Quiz updated successfully!"));
 });
+
 const getAllQuizzes = asyncHandler(async (req, res) => {
   const quizzes = await Quize.find().sort({ createdAt: -1 });
 
