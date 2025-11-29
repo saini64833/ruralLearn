@@ -110,7 +110,7 @@ const AppWrapper = () => {
           }
         />
         <Route
-          path="/quizzes/quize/:id" 
+          path="/quizzes/quize/:id"
           element={
             <ProtectedRoute>
               <QuizeDetail />
@@ -118,7 +118,15 @@ const AppWrapper = () => {
           }
         />
         <Route
-          path="/quizzes/attempt/:id" 
+          path="/quizzes/attempt/:id"
+          element={
+            <ProtectedRoute>
+              <AttemptQuiz />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quizzes/response/:id"
           element={
             <ProtectedRoute>
               <AttemptQuiz />

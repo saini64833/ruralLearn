@@ -124,15 +124,13 @@ const updateQuize = asyncHandler(async (req, res) => {
 
   if (Array.isArray(deletedQuestions) && deletedQuestions.length > 0) {
     for (const qId of deletedQuestions) {
-      await Question.findByIdAndDelete(qId); 
+      await Question.findByIdAndDelete(qId);
     }
-
 
     existingQuiz.questions = existingQuiz.questions.filter(
       (qid) => !deletedQuestions.includes(qid.toString())
     );
   }
-
 
   if (Array.isArray(questions) && questions.length > 0) {
     const updatedQuestionIds = [];
@@ -253,10 +251,92 @@ const deleteQuize = asyncHandler(async (req, res) => {
 });
 
 const getQuizeResponseById = asyncHandler(async (req, res) => {
-  const {id}=req.params
-  if(!id){
-    throw new ApiError(401,"quize id not available")
-  }
+  const { id } = req.params;
+  const studentId = req.user?._id;
 
+  if (!id) throw new ApiError(400, "Quiz ID not provided");
+  if (!studentId) throw new ApiError(401, "Unauthorized");
+
+  const data = await Quize.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(id) } },
+
+    {
+      $lookup: {
+        from: "questions",
+        localField: "questions",
+        foreignField: "_id",
+        as: "questions",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "quizeresults",
+        let: { quizId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$quiz", "$$quizId"] },
+                  { $eq: ["$student", new mongoose.Types.ObjectId(studentId)] },
+                ],
+              },
+            },
+          },
+          { $limit: 1 },
+        ],
+        as: "result",
+      },
+    },
+    { $unwind: { path: "$result", preserveNullAndEmptyArrays: true } },
+
+    {
+      $addFields: {
+        answers: {
+          $map: {
+            input: "$questions",
+            as: "q",
+            in: {
+              questionId: "$$q._id",
+              questionText: "$$q.question",
+              options: "$$q.options",
+              marks: "$$q.marks",
+              correctOptionIndex: "$$q.correctOptionIndex",
+              userAnswer: {
+                $first: {
+                  $filter: {
+                    input: "$result.answers",
+                    as: "a",
+                    cond: { $eq: ["$$a.questionId", "$$q._id"] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    {
+      $addFields: {
+        quizTotalMarks: { $sum: "$questions.marks" },
+      },
+    },
+  ]);
+
+  if (!data.length) throw new ApiError(404, "Quiz not found");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, data[0], "response get successfully!!"));
 });
-export { uploadQuize, updateQuize, getAllQuizzes, getQuizeById, deleteQuize,getQuizeResponseById };
+
+export {
+  uploadQuize,
+  updateQuize,
+  getAllQuizzes,
+  getQuizeById,
+  deleteQuize,
+  getQuizeResponseById,
+};

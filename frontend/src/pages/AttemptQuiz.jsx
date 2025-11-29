@@ -50,7 +50,6 @@ const AttemptQuiz = () => {
         if (!mounted) return;
         setQuiz(quizData);
 
-        // restore saved answers/marked/visited
         const savedAnswers = JSON.parse(localStorage.getItem(STORAGE_KEYS.answers) || "{}");
         const savedMarked = JSON.parse(localStorage.getItem(STORAGE_KEYS.marked) || "{}");
         const savedVisited = JSON.parse(localStorage.getItem(STORAGE_KEYS.visited) || "{}");
@@ -59,7 +58,6 @@ const AttemptQuiz = () => {
         setMarkedForReview(savedMarked);
         setVisited(savedVisited);
 
-        // timer start/restore
         const totalSec = quizData.duration * 60;
         let start = localStorage.getItem(STORAGE_KEYS.start);
         if (!start) {
@@ -70,7 +68,6 @@ const AttemptQuiz = () => {
         const remaining = totalSec - elapsed;
         setTimeLeft(remaining > 0 ? remaining : 0);
         if (remaining <= 0) {
-          // time already up (maybe user reloaded after exam end)
           handleAutoSubmit(savedAnswers, true);
         }
       } catch (err) {
@@ -203,7 +200,7 @@ const AttemptQuiz = () => {
   const handleSubmit = async () => {
     setConfirmOpen(false);
     try {
-      await axiosInstance.post(`/quizzes/submit`, {
+      await axiosInstance.post(`/quizzes/response/${id}`, {
         quizId: id,
         answers: selectedAnswers,
       });
@@ -213,23 +210,20 @@ const AttemptQuiz = () => {
       localStorage.removeItem(STORAGE_KEYS.marked);
       localStorage.removeItem(STORAGE_KEYS.visited);
 
-      // navigate to result page
       navigate(`/quizzes/result/${id}`);
     } catch (err) {
-      console.error("Submit Error:", err);
+      console.log("Submit Error:", err);
       // still try to navigate or inform user
     }
   };
 
-  // Auto submit when time ends (show timeUp screen afterwards)
   const handleAutoSubmit = async (answersSnapshot = {}, alreadySubmittedFlag = false) => {
     // stop timer
     clearInterval(timeIntervalRef.current);
     setTimeUp(true);
 
     try {
-      // if alreadySubmittedFlag true, backend likely already has it; attempt anyways is safe
-      await axiosInstance.post(`/quizzes/submit`, {
+      await axiosInstance.post(`/quizzes/response/${id}`, {
         quizId: id,
         answers: answersSnapshot || selectedAnswers,
       });
