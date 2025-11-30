@@ -45,7 +45,7 @@ router.delete(
   roleVerification(["Teacher"]),
   deleteQuize
 );
-router.put(
+router.post(
   "/response/:id",
   verifyJwt,
   roleVerification(["Student"]),
