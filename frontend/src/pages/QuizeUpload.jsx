@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
-
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 const QuizeUpload = () => {
   const { user } = useAuth();
-
+  const navigate = useNavigate();
   const [quizData, setQuizData] = useState({
     title: "",
     subject: "",
@@ -19,11 +19,11 @@ const QuizeUpload = () => {
         questionText: "",
         options: ["", ""],
         correctAnswerIndex: 0,
+        marks: 1,
       },
     ],
   });
 
-  // Handle field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setQuizData({ ...quizData, [name]: value });
@@ -52,7 +52,12 @@ const QuizeUpload = () => {
       ...quizData,
       questions: [
         ...quizData.questions,
-        { questionText: "", options: ["", ""], correctAnswerIndex: 0 },
+        {
+          questionText: "",
+          options: ["", ""],
+          correctAnswerIndex: 0,
+          marks: 1,
+        },
       ],
     });
   };
@@ -66,21 +71,32 @@ const QuizeUpload = () => {
     }
 
     try {
-      const formData = new FormData();
-      formData.append("title", quizData.title);
-      formData.append("subject", quizData.subject);
-      formData.append("description", quizData.description);
-      formData.append("duration", quizData.duration);
-      formData.append("totalMarks", quizData.totalMarks);
-      formData.append("difficulty", quizData.difficulty);
-      formData.append("tags", quizData.tags);
-      formData.append("questions", JSON.stringify(quizData.questions));
+      const payload = {
+        title: quizData.title,
+        subject: quizData.subject,
+        description: quizData.description,
+        duration: Number(quizData.duration),
+        totalMarks: Number(quizData.totalMarks),
+        difficulty: quizData.difficulty,
+        tags: quizData.tags,
+        questions: quizData.questions.map((q) => ({
+          questionText: q.questionText,
+          options: q.options,
+          correctAnswerIndex: Number(q.correctAnswerIndex),
+          marks: Number(q.marks),
+        })),
+      };
 
-      const res = await axiosInstance.post("/quizzes/upload-quize", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const res = await axiosInstance.post("/quizzes/upload-quize", payload, {
+        headers: { "Content-Type": "application/json" },
       });
 
       toast.success("Quiz uploaded successfully!");
+
+      setTimeout(() => {
+        navigate("/quizzes/get-all-quizzes"); 
+      }, 1000);
+
       console.log("Response:", res.data);
     } catch (err) {
       console.error("Error uploading quiz:", err);
@@ -88,7 +104,7 @@ const QuizeUpload = () => {
     }
   };
 
-  //  Restrict Access
+  // Access restriction
   if (!user) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -109,7 +125,6 @@ const QuizeUpload = () => {
     );
   }
 
-  //  Render for teacher only
   return (
     <div className="min-h-screen bg-gray-100 py-10 flex justify-center">
       <div className="w-full max-w-4xl bg-white border border-gray-300 shadow-md rounded-2xl p-8">
@@ -128,12 +143,14 @@ const QuizeUpload = () => {
               <input
                 name="title"
                 placeholder="Quiz Title"
+                value={quizData.title}
                 onChange={handleChange}
                 className="border rounded-lg p-3 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
               />
               <input
                 name="subject"
                 placeholder="Subject"
+                value={quizData.subject}
                 onChange={handleChange}
                 className="border rounded-lg p-3 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
               />
@@ -142,6 +159,7 @@ const QuizeUpload = () => {
             <textarea
               name="description"
               placeholder="Description"
+              value={quizData.description}
               onChange={handleChange}
               rows="3"
               className="border rounded-lg p-3 w-full mt-4 focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -151,17 +169,20 @@ const QuizeUpload = () => {
               <input
                 name="duration"
                 placeholder="Duration (mins)"
+                value={quizData.duration}
                 onChange={handleChange}
                 className="border rounded-lg p-3 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
               />
               <input
                 name="totalMarks"
                 placeholder="Total Marks"
+                value={quizData.totalMarks}
                 onChange={handleChange}
                 className="border rounded-lg p-3 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
               />
               <select
                 name="difficulty"
+                value={quizData.difficulty}
                 onChange={handleChange}
                 className="border rounded-lg p-3 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
               >
@@ -174,6 +195,7 @@ const QuizeUpload = () => {
             <input
               name="tags"
               placeholder="Tags (comma separated)"
+              value={quizData.tags}
               onChange={handleChange}
               className="border rounded-lg p-3 w-full mt-4 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
@@ -190,12 +212,18 @@ const QuizeUpload = () => {
                 key={qIndex}
                 className="p-5 mb-5 border border-gray-200 rounded-lg bg-white shadow-sm"
               >
+                {/* Question Number */}
                 <h4 className="font-semibold text-gray-700 mb-3">
                   Question {qIndex + 1}
                 </h4>
 
+                {/* Question Text */}
+                <label className="block text-gray-600 mb-1">
+                  Enter the question:
+                </label>
                 <input
-                  placeholder="Enter question text"
+                  type="text"
+                  placeholder="Type the question here..."
                   value={q.questionText}
                   onChange={(e) =>
                     handleQuestionChange(qIndex, "questionText", e.target.value)
@@ -203,16 +231,35 @@ const QuizeUpload = () => {
                   className="border rounded-lg p-3 w-full mb-3 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
 
+                {/* Options with radio buttons for correct answer */}
+                <label className="block text-gray-600 mb-2">
+                  Options (select the correct one):
+                </label>
                 {q.options.map((opt, oIndex) => (
-                  <input
-                    key={oIndex}
-                    placeholder={`Option ${oIndex + 1}`}
-                    value={opt}
-                    onChange={(e) =>
-                      handleOptionChange(qIndex, oIndex, e.target.value)
-                    }
-                    className="border rounded-lg p-3 w-full mb-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
+                  <div key={oIndex} className="flex items-center mb-2">
+                    <input
+                      type="radio"
+                      name={`correct-${qIndex}`}
+                      checked={q.correctAnswerIndex === oIndex}
+                      onChange={() =>
+                        handleQuestionChange(
+                          qIndex,
+                          "correctAnswerIndex",
+                          oIndex
+                        )
+                      }
+                      className="mr-2 accent-indigo-600"
+                    />
+                    <input
+                      type="text"
+                      placeholder={`Option ${oIndex + 1} text`}
+                      value={opt}
+                      onChange={(e) =>
+                        handleOptionChange(qIndex, oIndex, e.target.value)
+                      }
+                      className="border rounded-lg p-2 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                  </div>
                 ))}
 
                 <button
@@ -220,21 +267,26 @@ const QuizeUpload = () => {
                   onClick={() => addOption(qIndex)}
                   className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded-md hover:bg-indigo-200"
                 >
-                  + Add Option
+                  + Add Another Option
                 </button>
 
+                {/* Marks input */}
+                <label className="block text-gray-600 mt-3 mb-1">
+                  Marks for this question:
+                </label>
                 <input
                   type="number"
-                  placeholder="Correct Option Index (0-based)"
-                  value={q.correctAnswerIndex}
+                  min="1"
+                  placeholder="Enter marks for this question"
+                  value={q.marks}
                   onChange={(e) =>
                     handleQuestionChange(
                       qIndex,
-                      "correctAnswerIndex",
-                      e.target.value
+                      "marks",
+                      Number(e.target.value)
                     )
                   }
-                  className="border rounded-lg p-3 w-full mt-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="border rounded-lg p-3 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
             ))}
@@ -248,7 +300,7 @@ const QuizeUpload = () => {
             </button>
           </section>
 
-          {/*  Upload Button — visible only for teachers */}
+          {/* Upload Button */}
           {user?.role === "Teacher" && (
             <button
               type="submit"

@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { FaEdit, FaPlay, FaCheckCircle } from "react-icons/fa"; // Import icons
 
 const QuizeDetail = () => {
   const { id } = useParams();
   const [quiz, setQuiz] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -13,19 +15,27 @@ const QuizeDetail = () => {
     const fetchQuiz = async () => {
       try {
         const res = await axiosInstance.get(`/quizzes/quize/${id}`);
-        console.log(res.data);
         setQuiz(res.data.data);
       } catch (err) {
         console.error("Error fetching quiz:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchQuiz();
   }, [id]);
 
-  if (!quiz)
+  if (loading)
     return (
       <div className="flex justify-center items-center h-screen text-gray-500 text-lg">
         Loading quiz details...
+      </div>
+    );
+
+  if (!quiz)
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500 text-lg">
+        Quiz not found!
       </div>
     );
 
@@ -38,7 +48,8 @@ const QuizeDetail = () => {
             {quiz.title}
           </h1>
           <p className="text-gray-600 mt-2">{quiz.description}</p>
-          <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 text-sm text-gray-700">
+
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700">
             <span>
               <strong className="text-gray-800">Subject:</strong> {quiz.subject}
             </span>
@@ -57,71 +68,78 @@ const QuizeDetail = () => {
               </span>
             </span>
             <span>
-              <strong className="text-gray-800">Duration:</strong>{" "}
-              {quiz.duration} mins
+              <strong className="text-gray-800">Duration:</strong> {quiz.duration} mins
             </span>
             <span>
-              <strong className="text-gray-800">Total Marks:</strong>{" "}
-              {quiz.totalMarks}
+              <strong className="text-gray-800">Total Marks:</strong> {quiz.totalMarks}
             </span>
+            {quiz.tags?.length > 0 && (
+              <span>
+                <strong className="text-gray-800">Tags:</strong>{" "}
+                {quiz.tags.map((tag, i) => (
+                  <span
+                    key={i}
+                    className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded mr-1 text-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Questions */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Questions
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Questions</h2>
 
           {quiz.questions?.length > 0 ? (
             quiz.questions.map((q, index) => (
               <div
                 key={q._id || index}
-                className="mb-5 bg-gray-50 p-5 rounded-xl border border-gray-200"
+                className="mb-5 bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm"
               >
-                <p className="font-medium text-gray-900 mb-3">
-                  {index + 1}. {q.questionText}
-                </p>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="font-medium text-gray-900">
+                    {index + 1}. {q.questionText}
+                  </p>
+                  <span className="text-sm text-gray-600">Marks: {q.marks || 1}</span>
+                </div>
+
                 <ul className="space-y-1 text-gray-700">
                   {q.options?.map((opt, i) => (
-                    <li
-                      key={i}
-                      className={`pl-2 ${
-                        i === q.correctAnswerIndex
-                          ? "text-emerald-600 font-semibold"
-                          : ""
-                      }`}
-                    >
-                      • {opt}
+                    <li key={i} className="flex items-center gap-2 pl-2">
+                      {i === q.correctAnswerIndex && (
+                        <FaCheckCircle className="text-emerald-600" />
+                      )}
+                      {opt}
                     </li>
                   ))}
                 </ul>
               </div>
             ))
           ) : (
-            <p className="text-gray-500 italic">
-              No questions have been added to this quiz yet.
-            </p>
+            <p className="text-gray-500 italic">No questions have been added to this quiz yet.</p>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-8 flex gap-4">
+        <div className="mt-8 flex gap-4 flex-wrap">
           {user?.role === "Teacher" && (
             <button
               onClick={() => navigate(`/quizzes/update-quize/${quiz._id}`)}
-              className="bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+              className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
             >
-              ✏️ Edit Quiz
+              <FaEdit /> Edit Quiz
             </button>
           )}
 
           {user?.role === "Student" && (
             <button
               onClick={() => navigate(`/quizzes/attempt/${quiz._id}`)}
-              className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+              className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
             >
-              🎯 Attempt Quiz
+              <FaPlay /> Attempt Quiz
             </button>
           )}
         </div>

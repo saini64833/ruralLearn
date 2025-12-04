@@ -46,7 +46,7 @@ router.delete(
   deleteQuize
 );
 router.post(
-  "/response/:id",
+  "/response/:quizeId",
   verifyJwt,
   roleVerification(["Student"]),
   getQuizeResponseById

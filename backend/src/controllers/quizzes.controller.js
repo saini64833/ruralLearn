@@ -5,7 +5,6 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { QuizeResult } from "../models/quizeResult.model.js";
 const uploadQuize = asyncHandler(async (req, res) => {
-  console.log(req.body);
   const {
     title,
     subject,
@@ -14,10 +13,9 @@ const uploadQuize = asyncHandler(async (req, res) => {
     totalMarks,
     difficulty,
     tags,
-    questionText,
-    options,
-    correctAnswerIndex,
+    questions, 
   } = req.body;
+
 
   if (
     !title?.trim() ||
@@ -29,34 +27,40 @@ const uploadQuize = asyncHandler(async (req, res) => {
   ) {
     throw new ApiError(400, "All quiz fields are required!");
   }
-  console.log(title);
 
-  if (!questionText?.trim()) {
-    throw new ApiError(400, "Question text is required!");
-  }
-  if (!Array.isArray(options) || options.length < 2) {
-    throw new ApiError(
-      400,
-      "Options must be an array with at least 2 choices!"
-    );
-  }
-  if (
-    correctAnswerIndex === undefined ||
-    correctAnswerIndex < 0 ||
-    correctAnswerIndex >= options.length
-  ) {
-    throw new ApiError(400, "correctAnswerIndex must be a valid index!");
+  if (!Array.isArray(questions) || questions.length === 0) {
+    throw new ApiError(400, "At least one question is required!");
   }
 
-  const question = await Question.create({
-    questionText,
-    options,
-    correctAnswerIndex,
-  });
-
-  if (!question) {
-    throw new ApiError(500, "Failed to create question!");
+  // Validate each question
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    if (!q.questionText?.trim())
+      throw new ApiError(400, `Question ${i + 1} text is required`);
+    if (!Array.isArray(q.options) || q.options.length < 2)
+      throw new ApiError(400, `Question ${i + 1} must have at least 2 options`);
+    if (
+      q.correctAnswerIndex === undefined ||
+      q.correctAnswerIndex < 0 ||
+      q.correctAnswerIndex >= q.options.length
+    )
+      throw new ApiError(
+        400,
+        `Question ${i + 1} has invalid correctAnswerIndex`
+      );
+    if (q.marks === undefined || isNaN(Number(q.marks)))
+      throw new ApiError(400, `Question ${i + 1} marks are required`);
   }
+
+  // Create all questions in DB
+  const createdQuestions = await Question.insertMany(
+    questions.map((q) => ({
+      questionText: q.questionText,
+      options: q.options,
+      correctAnswerIndex: Number(q.correctAnswerIndex),
+      marks: Number(q.marks),
+    }))
+  );
 
   const tagArray = Array.isArray(tags)
     ? tags
@@ -64,21 +68,18 @@ const uploadQuize = asyncHandler(async (req, res) => {
       ? tags.split(",").map((t) => t.trim())
       : [];
 
+  // Create quiz
   const quize = await Quize.create({
-    title,
-    subject,
-    description,
+    title: title.trim(),
+    subject: subject.trim(),
+    description: description.trim(),
     duration: Number(duration),
     totalMarks: Number(totalMarks),
-    difficulty,
+    difficulty: difficulty.trim(),
     tags: tagArray,
     createdBy: req.user?._id,
-    questions: [question._id],
+    questions: createdQuestions.map((q) => q._id),
   });
-
-  if (!quize) {
-    throw new ApiError(500, "Failed to create quiz!");
-  }
 
   return res
     .status(201)
@@ -87,7 +88,6 @@ const uploadQuize = asyncHandler(async (req, res) => {
 
 const updateQuize = asyncHandler(async (req, res) => {
   const { id } = req.params;
-
   const {
     title,
     subject,
@@ -103,10 +103,12 @@ const updateQuize = asyncHandler(async (req, res) => {
   const existingQuiz = await Quize.findById(id);
   if (!existingQuiz) throw new ApiError(404, "Quiz not found!");
 
+  // Authorization check
   if (req.user?._id.toString() !== existingQuiz.createdBy.toString()) {
     throw new ApiError(403, "You are not authorized to update this quiz!");
   }
 
+  // Update quiz fields
   if (title) existingQuiz.title = title.trim();
   if (subject) existingQuiz.subject = subject.trim();
   if (description) existingQuiz.description = description.trim();
@@ -118,25 +120,26 @@ const updateQuize = asyncHandler(async (req, res) => {
     existingQuiz.tags = Array.isArray(tags)
       ? tags
       : typeof tags === "string"
-        ? tags.split(",").map((t) => t.trim())
-        : existingQuiz.tags;
+      ? tags.split(",").map((t) => t.trim())
+      : existingQuiz.tags;
   }
 
+  // Delete questions if any
   if (Array.isArray(deletedQuestions) && deletedQuestions.length > 0) {
     for (const qId of deletedQuestions) {
       await Question.findByIdAndDelete(qId);
     }
-
     existingQuiz.questions = existingQuiz.questions.filter(
       (qid) => !deletedQuestions.includes(qid.toString())
     );
   }
 
+  // Update or add new questions
   if (Array.isArray(questions) && questions.length > 0) {
     const updatedQuestionIds = [];
 
     for (const q of questions) {
-      const { _id, questionText, options, correctAnswerIndex } = q;
+      const { _id, questionText, options, correctAnswerIndex, marks } = q;
 
       if (_id) {
         const updatedQ = await Question.findByIdAndUpdate(
@@ -145,9 +148,8 @@ const updateQuize = asyncHandler(async (req, res) => {
             $set: {
               ...(questionText && { questionText: questionText.trim() }),
               ...(Array.isArray(options) && options.length >= 2 && { options }),
-              ...(correctAnswerIndex !== undefined && {
-                correctAnswerIndex,
-              }),
+              ...(correctAnswerIndex !== undefined && { correctAnswerIndex }),
+              ...(marks !== undefined && { marks: Number(marks) }),
             },
           },
           { new: true }
@@ -159,11 +161,13 @@ const updateQuize = asyncHandler(async (req, res) => {
           questionText,
           options,
           correctAnswerIndex,
+          marks: marks !== undefined ? Number(marks) : 1,
         });
         updatedQuestionIds.push(newQ._id);
       }
     }
 
+    // Merge old and new question IDs, ensuring uniqueness
     const uniqueIds = new Set([
       ...existingQuiz.questions.map((id) => id.toString()),
       ...updatedQuestionIds.map((id) => id.toString()),
@@ -182,6 +186,7 @@ const updateQuize = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, updatedQuiz, "Quiz updated successfully!"));
 });
+
 
 const getAllQuizzes = asyncHandler(async (req, res) => {
   const quizzes = await Quize.find().sort({ createdAt: -1 });
@@ -205,7 +210,7 @@ const getQuizeById = asyncHandler(async (req, res) => {
   const quize = await Quize.findById(id)
     .populate({
       path: "questions",
-      select: "questionText options correctAnswerIndex",
+      select: "questionText options correctAnswerIndex,marks",
     })
     .populate({
       path: "createdBy",
@@ -251,6 +256,20 @@ const deleteQuize = asyncHandler(async (req, res) => {
 });
 
 const getQuizeResponseById = asyncHandler(async (req, res) => {
+  const { quizeId } = req.params;
+  const { studentId } = req?.user.id;
+  if (!studentId) {
+    throw new ApiError(400, "student did not find!!");
+  }
+  if (!quizeId) {
+    throw new ApiError(400, "quiz id does not get!!");
+  }
+  const quiz = await Quize.findById(quizeId);
+  if (!quiz) {
+    throw new ApiError(401, "quiz not found!!");
+  }
+  const questionsCorrectAnswerIndexs = quiz.questions.correctAnswerIndex;
+  const userAnswersIndexs = req.body;
 });
 
 export {

@@ -8,7 +8,7 @@ const QuizeUpdate = () => {
   const navigate = useNavigate();
 
   const [quiz, setQuiz] = useState(null);
-  const [deletedQuestions, setDeletedQuestions] = useState([]); 
+  const [deletedQuestions, setDeletedQuestions] = useState([]);
 
   useEffect(() => {
     const loadQuiz = async () => {
@@ -31,16 +31,21 @@ const QuizeUpdate = () => {
     setQuiz({ ...quiz, [name]: value });
   };
 
-  const handleQuestionChange = (index, e) => {
-    const { name, value } = e.target;
+  const handleQuestionChange = (index, field, value) => {
     const updatedQuestions = [...quiz.questions];
-    updatedQuestions[index][name] = value;
+    updatedQuestions[index][field] = value;
     setQuiz({ ...quiz, questions: updatedQuestions });
   };
 
   const handleOptionChange = (qIndex, oIndex, value) => {
     const updatedQuestions = [...quiz.questions];
     updatedQuestions[qIndex].options[oIndex] = value;
+    setQuiz({ ...quiz, questions: updatedQuestions });
+  };
+
+  const addOption = (qIndex) => {
+    const updatedQuestions = [...quiz.questions];
+    updatedQuestions[qIndex].options.push("");
     setQuiz({ ...quiz, questions: updatedQuestions });
   };
 
@@ -51,8 +56,9 @@ const QuizeUpdate = () => {
         ...quiz.questions,
         {
           questionText: "",
-          options: ["", "", "", ""],
+          options: ["", ""], // you can set 4 options if needed
           correctAnswerIndex: 0,
+          marks: 1,
         },
       ],
     });
@@ -60,12 +66,9 @@ const QuizeUpdate = () => {
 
   const deleteQuestion = (index) => {
     const questionToDelete = quiz.questions[index];
-
     if (questionToDelete._id) {
       setDeletedQuestions((prev) => [...prev, questionToDelete._id]);
     }
-
-
     const updatedQuestions = quiz.questions.filter((_, i) => i !== index);
     setQuiz({ ...quiz, questions: updatedQuestions });
   };
@@ -75,12 +78,18 @@ const QuizeUpdate = () => {
 
     const payload = {
       ...quiz,
-      deletedQuestions, 
+      duration: Number(quiz.duration),
+      totalMarks: Number(quiz.totalMarks),
+      questions: quiz.questions.map((q) => ({
+        ...q,
+        marks: Number(q.marks),
+        correctAnswerIndex: Number(q.correctAnswerIndex),
+      })),
+      deletedQuestions,
     };
 
     try {
       await axiosInstance.put(`/quizzes/update-quize/${id}`, payload);
-
       toast.success("✅ Quiz updated successfully!");
       setTimeout(() => {
         navigate(`/quizzes/quize/${id}`);
@@ -143,7 +152,9 @@ const QuizeUpdate = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             <div>
-              <label className="text-gray-600 font-medium">Duration (mins)</label>
+              <label className="text-gray-600 font-medium">
+                Duration (mins)
+              </label>
               <input
                 name="duration"
                 value={quiz.duration}
@@ -213,7 +224,9 @@ const QuizeUpdate = () => {
                 <input
                   name="questionText"
                   value={q.questionText}
-                  onChange={(e) => handleQuestionChange(qIndex, e)}
+                  onChange={(e) =>
+                    handleQuestionChange(qIndex, "questionText", e.target.value)
+                  }
                   placeholder="Enter question..."
                   className="w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
@@ -225,11 +238,13 @@ const QuizeUpdate = () => {
                         type="radio"
                         name={`correct-${qIndex}`}
                         checked={q.correctAnswerIndex === oIndex}
-                        onChange={() => {
-                          const updatedQuestions = [...quiz.questions];
-                          updatedQuestions[qIndex].correctAnswerIndex = oIndex;
-                          setQuiz({ ...quiz, questions: updatedQuestions });
-                        }}
+                        onChange={() =>
+                          handleQuestionChange(
+                            qIndex,
+                            "correctAnswerIndex",
+                            oIndex
+                          )
+                        }
                       />
                       <input
                         type="text"
@@ -242,6 +257,30 @@ const QuizeUpdate = () => {
                       />
                     </div>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => addOption(qIndex)}
+                    className="text-sm text-blue-600 hover:underline mt-2"
+                  >
+                    + Add Option
+                  </button>
+                </div>
+
+                <div className="mt-3">
+                  <label className="text-gray-600 font-medium">Marks</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={q.marks || 1}
+                    onChange={(e) =>
+                      handleQuestionChange(
+                        qIndex,
+                        "marks",
+                        Number(e.target.value)
+                      )
+                    }
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
                 </div>
               </div>
             ))}

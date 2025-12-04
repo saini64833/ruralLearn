@@ -1,4 +1,6 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
+
+const { Schema } = mongoose;
 
 const questionSchema = new Schema(
   {
@@ -23,6 +25,10 @@ const questionSchema = new Schema(
         },
         message: "correctAnswerIndex must be a valid index in options array",
       },
+    },
+    marks: {
+      type: Number,
+      default: 1,
     },
   },
   { timestamps: true }
