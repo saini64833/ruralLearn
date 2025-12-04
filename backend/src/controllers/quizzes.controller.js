@@ -13,9 +13,8 @@ const uploadQuize = asyncHandler(async (req, res) => {
     totalMarks,
     difficulty,
     tags,
-    questions, 
+    questions,
   } = req.body;
-
 
   if (
     !title?.trim() ||
@@ -120,8 +119,8 @@ const updateQuize = asyncHandler(async (req, res) => {
     existingQuiz.tags = Array.isArray(tags)
       ? tags
       : typeof tags === "string"
-      ? tags.split(",").map((t) => t.trim())
-      : existingQuiz.tags;
+        ? tags.split(",").map((t) => t.trim())
+        : existingQuiz.tags;
   }
 
   // Delete questions if any
@@ -186,7 +185,6 @@ const updateQuize = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, updatedQuiz, "Quiz updated successfully!"));
 });
-
 
 const getAllQuizzes = asyncHandler(async (req, res) => {
   const quizzes = await Quize.find().sort({ createdAt: -1 });
@@ -256,21 +254,73 @@ const deleteQuize = asyncHandler(async (req, res) => {
 });
 
 const getQuizeResponseById = asyncHandler(async (req, res) => {
-  const { quizeId } = req.params;
-  const { studentId } = req?.user.id;
-  if (!studentId) {
-    throw new ApiError(400, "student did not find!!");
-  }
-  if (!quizeId) {
-    throw new ApiError(400, "quiz id does not get!!");
-  }
-  const quiz = await Quize.findById(quizeId);
-  if (!quiz) {
-    throw new ApiError(401, "quiz not found!!");
-  }
-  const questionsCorrectAnswerIndexs = quiz.questions.correctAnswerIndex;
-  const userAnswersIndexs = req.body;
+  const { id } = req.params;
+  const studentId = req.user?.id;
+
+  if (!studentId) throw new ApiError(400, "Student not found");
+  if (!id) throw new ApiError(400, "Quiz ID missing");
+
+  const quiz = await Quize.findById(id).populate("questions");
+  if (!quiz) throw new ApiError(404, "Quiz not found");
+
+  const userAnswers = req.body.answers || {};
+
+  let answersArray = [];
+  let totalScore = 0;
+
+  quiz.questions.forEach((question, index) => {
+
+    const selected = userAnswers[index] || [];
+
+    if (!selected || selected.length === 0) {
+      answersArray.push({
+        questionId: question._id,
+        selectedOptionIndex: [],
+        isCorrect: false,
+        score: 0,
+      });
+      return;
+    }
+
+    const correctIndexes = question.correctAnswerIndex; 
+    const isCorrect =
+      JSON.stringify(correctIndexes.sort()) === JSON.stringify(selected.sort());
+
+    let score = 0;
+    if (isCorrect) {
+      score = question.marks;
+    } else {
+      score = question.negativeMarks ? -question.negativeMarks : 0;
+    }
+
+    totalScore += score;
+
+    answersArray.push({
+      questionId: question._id,
+      selectedOptionIndex: selected,
+      isCorrect,
+      score,
+    });
+  });
+
+  const totalPercentage =
+    quiz.totalMarks > 0 ? (totalScore / quiz.totalMarks) * 100 : 0;
+
+  const result = await QuizeResult.create({
+    quiz: quizeId,
+    student: studentId,
+    answers: answersArray,
+    totalScore,
+    totalPercentage,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Quiz checked successfully",
+    result,
+  });
 });
+
 
 export {
   uploadQuize,

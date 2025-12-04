@@ -2,7 +2,14 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import {
+  FiPlus,
+  FiTrash2,
+  FiSave,
+  FiPlusCircle,
+  FiEdit,
+} from "react-icons/fi";
+import { GiBrain } from "react-icons/gi";
 const QuizeUpdate = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,26 +34,25 @@ const QuizeUpdate = () => {
   }, [id]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setQuiz({ ...quiz, [name]: value });
+    setQuiz({ ...quiz, [e.target.name]: e.target.value });
   };
 
   const handleQuestionChange = (index, field, value) => {
-    const updatedQuestions = [...quiz.questions];
-    updatedQuestions[index][field] = value;
-    setQuiz({ ...quiz, questions: updatedQuestions });
+    const updated = [...quiz.questions];
+    updated[index][field] = value;
+    setQuiz({ ...quiz, questions: updated });
   };
 
   const handleOptionChange = (qIndex, oIndex, value) => {
-    const updatedQuestions = [...quiz.questions];
-    updatedQuestions[qIndex].options[oIndex] = value;
-    setQuiz({ ...quiz, questions: updatedQuestions });
+    const updated = [...quiz.questions];
+    updated[qIndex].options[oIndex] = value;
+    setQuiz({ ...quiz, questions: updated });
   };
 
   const addOption = (qIndex) => {
-    const updatedQuestions = [...quiz.questions];
-    updatedQuestions[qIndex].options.push("");
-    setQuiz({ ...quiz, questions: updatedQuestions });
+    const updated = [...quiz.questions];
+    updated[qIndex].options.push("");
+    setQuiz({ ...quiz, questions: updated });
   };
 
   const addQuestion = () => {
@@ -56,7 +62,7 @@ const QuizeUpdate = () => {
         ...quiz.questions,
         {
           questionText: "",
-          options: ["", ""], // you can set 4 options if needed
+          options: ["", ""],
           correctAnswerIndex: 0,
           marks: 1,
         },
@@ -65,12 +71,15 @@ const QuizeUpdate = () => {
   };
 
   const deleteQuestion = (index) => {
-    const questionToDelete = quiz.questions[index];
-    if (questionToDelete._id) {
-      setDeletedQuestions((prev) => [...prev, questionToDelete._id]);
+    const toDelete = quiz.questions[index];
+    if (toDelete._id) {
+      setDeletedQuestions((prev) => [...prev, toDelete._id]);
     }
-    const updatedQuestions = quiz.questions.filter((_, i) => i !== index);
-    setQuiz({ ...quiz, questions: updatedQuestions });
+
+    setQuiz({
+      ...quiz,
+      questions: quiz.questions.filter((_, i) => i !== index),
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -90,30 +99,29 @@ const QuizeUpdate = () => {
 
     try {
       await axiosInstance.put(`/quizzes/update-quize/${id}`, payload);
-      toast.success("✅ Quiz updated successfully!");
-      setTimeout(() => {
-        navigate(`/quizzes/quize/${id}`);
-      }, 600);
+      toast.success("Quiz updated successfully!");
+      navigate(`/quizzes/quize/${id}`);
     } catch (err) {
       console.error(err);
-      toast.error("❌ Failed to update quiz");
+      toast.error("Failed to update quiz");
     }
   };
 
-  if (!quiz)
+  if (!quiz) {
     return (
       <p className="text-center mt-10 text-gray-500 text-lg">Loading...</p>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
-      <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-10 border border-gray-200">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-          ✏️ Update Quiz
+      <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-10 border border-gray-200">
+        <h1 className="text-4xl font-bold text-gray-900 mb-8 flex justify-center gap-3 items-center">
+          <FiEdit/>Update Quiz
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Quiz Info */}
+          {/* Info */}
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <label className="text-gray-600 font-medium">Quiz Title</label>
@@ -122,7 +130,7 @@ const QuizeUpdate = () => {
                 value={quiz.title}
                 onChange={handleChange}
                 className="w-full mt-2 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Enter title..."
+                placeholder="Enter quiz title"
               />
             </div>
 
@@ -133,7 +141,7 @@ const QuizeUpdate = () => {
                 value={quiz.subject}
                 onChange={handleChange}
                 className="w-full mt-2 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Enter subject..."
+                placeholder="Enter subject"
               />
             </div>
           </div>
@@ -144,17 +152,16 @@ const QuizeUpdate = () => {
               name="description"
               value={quiz.description}
               onChange={handleChange}
-              className="w-full mt-2 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
               rows="3"
-              placeholder="Enter description..."
+              className="w-full mt-2 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Enter quiz description"
             />
           </div>
 
+          {/* Duration */}
           <div className="grid md:grid-cols-3 gap-8">
             <div>
-              <label className="text-gray-600 font-medium">
-                Duration (mins)
-              </label>
+              <label className="text-gray-600 font-medium">Duration (mins)</label>
               <input
                 name="duration"
                 value={quiz.duration}
@@ -188,18 +195,19 @@ const QuizeUpdate = () => {
             </div>
           </div>
 
-          {/* Questions Section */}
+          {/* Questions */}
           <div className="mt-10">
-            <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold text-gray-800">
-                🧠 Manage Questions
+              <GiBrain/> Manage Questions
               </h2>
+
               <button
                 type="button"
                 onClick={addQuestion}
-                className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
               >
-                ➕ Add Question
+                <FiPlus className="text-lg" /> Add Question
               </button>
             </div>
 
@@ -208,29 +216,32 @@ const QuizeUpdate = () => {
                 key={qIndex}
                 className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6 shadow-sm"
               >
+                {/* question head */}
                 <div className="flex justify-between mb-3">
                   <h3 className="text-lg font-semibold text-gray-700">
                     Question {qIndex + 1}
                   </h3>
+
                   <button
                     type="button"
                     onClick={() => deleteQuestion(qIndex)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 flex items-center gap-1"
                   >
-                    🗑 Delete
+                    <FiTrash2 /> Delete
                   </button>
                 </div>
 
+                {/* question text */}
                 <input
-                  name="questionText"
                   value={q.questionText}
                   onChange={(e) =>
                     handleQuestionChange(qIndex, "questionText", e.target.value)
                   }
-                  placeholder="Enter question..."
+                  placeholder="Enter question text..."
                   className="w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
 
+                {/* options */}
                 <div className="space-y-3">
                   {q.options.map((opt, oIndex) => (
                     <div key={oIndex} className="flex items-center gap-3">
@@ -246,6 +257,7 @@ const QuizeUpdate = () => {
                           )
                         }
                       />
+
                       <input
                         type="text"
                         value={opt}
@@ -257,27 +269,25 @@ const QuizeUpdate = () => {
                       />
                     </div>
                   ))}
+
                   <button
                     type="button"
                     onClick={() => addOption(qIndex)}
-                    className="text-sm text-blue-600 hover:underline mt-2"
+                    className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-2"
                   >
-                    + Add Option
+                    <FiPlusCircle /> Add Option
                   </button>
                 </div>
 
-                <div className="mt-3">
+                {/* marks */}
+                <div className="mt-4">
                   <label className="text-gray-600 font-medium">Marks</label>
                   <input
                     type="number"
                     min="1"
-                    value={q.marks || 1}
+                    value={q.marks}
                     onChange={(e) =>
-                      handleQuestionChange(
-                        qIndex,
-                        "marks",
-                        Number(e.target.value)
-                      )
+                      handleQuestionChange(qIndex, "marks", e.target.value)
                     }
                     className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   />
@@ -286,13 +296,13 @@ const QuizeUpdate = () => {
             ))}
           </div>
 
-          {/* Save Button */}
+          {/* Submit */}
           <div className="text-center mt-10">
             <button
               type="submit"
-              className="bg-black text-white px-10 py-3 rounded-lg font-medium text-lg hover:bg-gray-800 transition"
+              className="flex items-center gap-2 mx-auto bg-black text-white px-10 py-3 rounded-lg font-medium text-lg hover:bg-gray-800 transition"
             >
-              💾 Save Changes
+              <FiSave className="text-xl" /> Save Changes
             </button>
           </div>
         </form>

@@ -85,20 +85,19 @@ const AttemptQuiz = () => {
 
   }, [id]);
 
-  // Timer ticking
+
   useEffect(() => {
     if (timeLeft === null) return;
 
-    // if time up, auto-submit once
+
     if (timeLeft <= 0) {
-      // ensure auto submit only once
       if (!timeUp) {
         handleAutoSubmit(selectedAnswers, false);
       }
       return;
     }
 
-    // start interval
+
     timeIntervalRef.current = setInterval(() => {
       setTimeLeft((t) => t - 1);
     }, 1000);
@@ -106,29 +105,28 @@ const AttemptQuiz = () => {
     return () => {
       clearInterval(timeIntervalRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [timeLeft]);
 
-  // Persist answers/marked/visited on every change
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.answers, JSON.stringify(selectedAnswers));
-  }, [selectedAnswers]); // eslint-disable-line
+  }, [selectedAnswers]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.marked, JSON.stringify(markedForReview));
-  }, [markedForReview]); // eslint-disable-line
+  }, [markedForReview]); 
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.visited, JSON.stringify(visited));
-  }, [visited]); // eslint-disable-line
+  }, [visited]); 
 
-  // Tab change detection (lightweight)
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) {
-        // left tab
+
       } else {
-        // returned to tab
+
         setTabSwitchCount((c) => c + 1);
       }
     };
@@ -136,7 +134,7 @@ const AttemptQuiz = () => {
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
-  // Helpers
+
   const totalQuestions = quiz?.questions?.length || 0;
   const fullTime = quiz?.duration ? quiz.duration * 60 : 1;
   const progressPercentage = timeLeft !== null ? Math.max(0, (timeLeft / fullTime) * 100) : 0;
@@ -151,7 +149,6 @@ const AttemptQuiz = () => {
     return cnt;
   })();
 
-  // format MM:SS
   const formatTime = (sec) => {
     if (sec === null) return "--:--";
     const m = Math.floor(sec / 60);
@@ -159,7 +156,7 @@ const AttemptQuiz = () => {
     return `${m}:${s < 10 ? "0" + s : s}`;
   };
 
-  // Navigation handlers
+
   const goTo = (index) => {
     setCurrentIndex(index);
     setVisited((v) => ({ ...v, [index]: true }));
@@ -179,7 +176,7 @@ const AttemptQuiz = () => {
     next();
   };
 
-  // answer select (supports multiple selection)
+
   const handleOptionToggle = (qIndex, optIndex) => {
     setSelectedAnswers((prev) => {
       const selected = prev[qIndex] || [];
@@ -190,21 +187,19 @@ const AttemptQuiz = () => {
     setVisited((v) => ({ ...v, [qIndex]: true }));
   };
 
-  // toggle mark for review
+
   const toggleMark = (qIndex) => {
     setMarkedForReview((m) => ({ ...m, [qIndex]: !m[qIndex] }));
     setVisited((v) => ({ ...v, [qIndex]: true }));
   };
 
-  // Manual submit (from confirm modal)
+
   const handleSubmit = async () => {
     setConfirmOpen(false);
     try {
       await axiosInstance.post(`/quizzes/response/${id}`, {
-        quizId: id,
         answers: selectedAnswers,
       });
-      // cleanup local storage
       localStorage.removeItem(STORAGE_KEYS.start);
       localStorage.removeItem(STORAGE_KEYS.answers);
       localStorage.removeItem(STORAGE_KEYS.marked);
@@ -224,7 +219,6 @@ const AttemptQuiz = () => {
 
     try {
       await axiosInstance.post(`/quizzes/response/${id}`, {
-        quizId: id,
         answers: answersSnapshot || selectedAnswers,
       });
     } catch (err) {
@@ -235,19 +229,18 @@ const AttemptQuiz = () => {
     }
   };
 
-  // Reattempt quiz: clears local state and resets start time, then reloads component state
+
   const handleReattempt = () => {
-    // clear saved state
+
     localStorage.removeItem(STORAGE_KEYS.start);
     localStorage.removeItem(STORAGE_KEYS.answers);
     localStorage.removeItem(STORAGE_KEYS.marked);
     localStorage.removeItem(STORAGE_KEYS.visited);
-    // reload page route to re-init the component (or programmatic navigate)
     navigate(`/quizzes/attempt/${id}`, { replace: true });
-    window.location.reload(); // simple and reliable for full reset
+    window.location.reload(); 
   };
 
-  // If loading
+
   if (loading || !quiz) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-600">
@@ -256,7 +249,6 @@ const AttemptQuiz = () => {
     );
   }
 
-  // TIME UP screen (auto-submitted)
   if (timeUp) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
@@ -286,7 +278,6 @@ const AttemptQuiz = () => {
     );
   }
 
-  // Current question
   const q = quiz.questions[currentIndex];
   const currentSelected = selectedAnswers[currentIndex] || [];
 
