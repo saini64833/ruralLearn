@@ -4,66 +4,80 @@ import axiosInstance from "../api/axiosInstance.js";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const saved = localStorage.getItem("user");
+
+      if (!saved || saved === "undefined" || saved === "null") {
+        return null;
+      }
+
+      return JSON.parse(saved);
+    } catch (err) {
+      console.error("Failed to parse user from localStorage", err);
+      return null;
+    }
   });
 
   const login = async (data) => {
     try {
       const res = await axiosInstance.post("/users/login", data);
-      console.log(res.data.success) 
+
       if (res.data.success) {
-        const accessToken = res.data.data.accessToken;
-        console.log(accessToken)
-        const userData = res.data?.data.user;
-        localStorage.setItem("accessToken", accessToken);
+        const token = res.data.data.accessToken;
+        const userData = res.data.data.user;
+
+        // Store securely
+        localStorage.setItem("accessToken", token);
         localStorage.setItem("user", JSON.stringify(userData));
 
+        // Set axios default header
         axiosInstance.defaults.headers.common[
           "Authorization"
-        ] = `Bearer ${accessToken}`;
+        ] = `Bearer ${token}`;
+
         setUser(userData);
       } else {
         throw new Error(res.data.message || "Login failed");
       }
     } catch (err) {
-      console.log(err);
+      console.error("Login error:", err);
       throw err;
     }
   };
-
   const logout = async () => {
     try {
       await axiosInstance.post("/users/logout");
     } catch (err) {
-      console.log(err);
+      console.log("Logout API failed:", err);
     }
 
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
+
     delete axiosInstance.defaults.headers.common["Authorization"];
     setUser(null);
   };
 
   const fetchCurrentUser = async () => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return setUser(null);
+    const token = localStorage.getItem("accessToken");
+    if (!token) return setUser(null);
 
-    axiosInstance.defaults.headers.common[
-      "Authorization"
-    ] = `Bearer ${accessToken}`;
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
     try {
       const res = await axiosInstance.get("/users/me");
-      setUser(res.data?.data);
-      localStorage.setItem("user", JSON.stringify(res.data?.data));
+
+      const currentUser = res.data?.data;
+
+      setUser(currentUser);
+      localStorage.setItem("user", JSON.stringify(currentUser));
     } catch (err) {
-      console.log(
-        "Failed to fetch user:",
-        err.response?.message || err.message
-      );
-      setUser(null);
+      console.error("Failed to fetch current user", err);
+
       localStorage.removeItem("user");
+      setUser(null);
     }
   };
 
