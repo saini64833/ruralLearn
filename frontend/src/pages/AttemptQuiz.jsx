@@ -1,12 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-
+import { toast } from "react-toastify";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-
-
-
 const AttemptQuiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,11 +11,10 @@ const AttemptQuiz = () => {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState({}); 
-  const [markedForReview, setMarkedForReview] = useState({}); 
-  const [visited, setVisited] = useState({}); 
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [markedForReview, setMarkedForReview] = useState({});
+  const [visited, setVisited] = useState({});
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(null);
@@ -50,9 +46,15 @@ const AttemptQuiz = () => {
         if (!mounted) return;
         setQuiz(quizData);
 
-        const savedAnswers = JSON.parse(localStorage.getItem(STORAGE_KEYS.answers) || "{}");
-        const savedMarked = JSON.parse(localStorage.getItem(STORAGE_KEYS.marked) || "{}");
-        const savedVisited = JSON.parse(localStorage.getItem(STORAGE_KEYS.visited) || "{}");
+        const savedAnswers = JSON.parse(
+          localStorage.getItem(STORAGE_KEYS.answers) || "{}"
+        );
+        const savedMarked = JSON.parse(
+          localStorage.getItem(STORAGE_KEYS.marked) || "{}"
+        );
+        const savedVisited = JSON.parse(
+          localStorage.getItem(STORAGE_KEYS.visited) || "{}"
+        );
 
         setSelectedAnswers(savedAnswers);
         setMarkedForReview(savedMarked);
@@ -82,13 +84,10 @@ const AttemptQuiz = () => {
     return () => {
       mounted = false;
     };
-
   }, [id]);
-
 
   useEffect(() => {
     if (timeLeft === null) return;
-
 
     if (timeLeft <= 0) {
       if (!timeUp) {
@@ -97,7 +96,6 @@ const AttemptQuiz = () => {
       return;
     }
 
-
     timeIntervalRef.current = setInterval(() => {
       setTimeLeft((t) => t - 1);
     }, 1000);
@@ -105,9 +103,7 @@ const AttemptQuiz = () => {
     return () => {
       clearInterval(timeIntervalRef.current);
     };
-
   }, [timeLeft]);
-
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.answers, JSON.stringify(selectedAnswers));
@@ -115,29 +111,28 @@ const AttemptQuiz = () => {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.marked, JSON.stringify(markedForReview));
-  }, [markedForReview]); 
+  }, [markedForReview]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.visited, JSON.stringify(visited));
-  }, [visited]); 
+  }, [visited]);
 
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) {
-
       } else {
-
         setTabSwitchCount((c) => c + 1);
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
-
 
   const totalQuestions = quiz?.questions?.length || 0;
   const fullTime = quiz?.duration ? quiz.duration * 60 : 1;
-  const progressPercentage = timeLeft !== null ? Math.max(0, (timeLeft / fullTime) * 100) : 0;
+  const progressPercentage =
+    timeLeft !== null ? Math.max(0, (timeLeft / fullTime) * 100) : 0;
 
   const unansweredCount = (() => {
     if (!quiz) return 0;
@@ -155,7 +150,6 @@ const AttemptQuiz = () => {
     const s = sec % 60;
     return `${m}:${s < 10 ? "0" + s : s}`;
   };
-
 
   const goTo = (index) => {
     setCurrentIndex(index);
@@ -176,30 +170,37 @@ const AttemptQuiz = () => {
     next();
   };
 
-
   const handleOptionToggle = (qIndex, optIndex) => {
     setSelectedAnswers((prev) => {
       const selected = prev[qIndex] || [];
       const exists = selected.includes(optIndex);
-      const newSel = exists ? selected.filter((x) => x !== optIndex) : [...selected, optIndex];
+      const newSel = exists
+        ? selected.filter((x) => x !== optIndex)
+        : [...selected, optIndex];
       return { ...prev, [qIndex]: newSel };
     });
     setVisited((v) => ({ ...v, [qIndex]: true }));
   };
-
 
   const toggleMark = (qIndex) => {
     setMarkedForReview((m) => ({ ...m, [qIndex]: !m[qIndex] }));
     setVisited((v) => ({ ...v, [qIndex]: true }));
   };
 
-
   const handleSubmit = async () => {
     setConfirmOpen(false);
+
     try {
-      await axiosInstance.post(`/quizzes/response/${id}`, {
-        answers: selectedAnswers,
-      });
+      const raw = Object.values(selectedAnswers);
+
+      const payload = {
+        answers: raw.map((ans) => ({
+          selectedOptionIndex: Array.isArray(ans) ? ans : [],
+        })),
+      };
+
+      await axiosInstance.post(`/quizzes/response/${id}`, payload);
+
       localStorage.removeItem(STORAGE_KEYS.start);
       localStorage.removeItem(STORAGE_KEYS.answers);
       localStorage.removeItem(STORAGE_KEYS.marked);
@@ -208,38 +209,43 @@ const AttemptQuiz = () => {
       navigate(`/quizzes/result/${id}`);
     } catch (err) {
       console.log("Submit Error:", err);
-      // still try to navigate or inform user
+      toast.error("Failed to submit quiz");
     }
   };
 
-  const handleAutoSubmit = async (answersSnapshot = {}, alreadySubmittedFlag = false) => {
-    // stop timer
+  const handleAutoSubmit = async (answersSnapshot = {}) => {
     clearInterval(timeIntervalRef.current);
     setTimeUp(true);
 
     try {
+      let raw = answersSnapshot.answers || answersSnapshot || selectedAnswers;
+
+      if (!Array.isArray(raw)) {
+        raw = Object.values(raw);
+      }
+
+      const formattedAnswers = raw.map((ans) => ({
+        selectedOptionIndex: Array.isArray(ans) ? ans : [],
+      }));
+
       await axiosInstance.post(`/quizzes/response/${id}`, {
-        answers: answersSnapshot || selectedAnswers,
+        answers: formattedAnswers,
       });
     } catch (err) {
       console.error("Auto submit failed:", err);
     } finally {
-      // remove stored start time but keep answers if user wants to reattempt
       localStorage.removeItem(STORAGE_KEYS.start);
     }
   };
 
-
   const handleReattempt = () => {
-
     localStorage.removeItem(STORAGE_KEYS.start);
     localStorage.removeItem(STORAGE_KEYS.answers);
     localStorage.removeItem(STORAGE_KEYS.marked);
     localStorage.removeItem(STORAGE_KEYS.visited);
     navigate(`/quizzes/attempt/${id}`, { replace: true });
-    window.location.reload(); 
+    window.location.reload();
   };
-
 
   if (loading || !quiz) {
     return (
@@ -255,7 +261,8 @@ const AttemptQuiz = () => {
         <div className="max-w-xl w-full bg-white rounded-2xl p-8 shadow text-center">
           <h1 className="text-3xl font-bold text-red-600 mb-4">⏳ Time's Up</h1>
           <p className="text-gray-700 mb-6">
-            Your answers have been automatically submitted. You can view results or reattempt the quiz.
+            Your answers have been automatically submitted. You can view results
+            or reattempt the quiz.
           </p>
 
           <div className="flex gap-3 justify-center">
@@ -315,7 +322,12 @@ const AttemptQuiz = () => {
                   unanswered
                 </div>
                 <div className="text-xs text-gray-500">
-                  Marked: {Object.keys(markedForReview).filter((k) => markedForReview[k]).length}
+                  Marked:{" "}
+                  {
+                    Object.keys(markedForReview).filter(
+                      (k) => markedForReview[k]
+                    ).length
+                  }
                 </div>
               </div>
             </div>
@@ -323,7 +335,13 @@ const AttemptQuiz = () => {
 
           {/* small timer for mobile */}
           <div className="sm:hidden">
-            <div className={`px-3 py-2 rounded-md font-semibold ${timeLeft <= 60 ? "bg-red-50 text-red-600" : "bg-indigo-50 text-indigo-700"}`}>
+            <div
+              className={`px-3 py-2 rounded-md font-semibold ${
+                timeLeft <= 60
+                  ? "bg-red-50 text-red-600"
+                  : "bg-indigo-50 text-indigo-700"
+              }`}
+            >
               {formatTime(timeLeft)}
             </div>
           </div>
@@ -340,13 +358,21 @@ const AttemptQuiz = () => {
                 <h2 className="text-base md:text-lg font-medium">
                   Q{currentIndex + 1}. {q.questionText}
                 </h2>
-                {q.explanation && <div className="text-sm text-gray-500 mt-2">{q.explanation}</div>}
+                {q.explanation && (
+                  <div className="text-sm text-gray-500 mt-2">
+                    {q.explanation}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleMark(currentIndex)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium border ${markedForReview[currentIndex] ? "bg-yellow-50 border-yellow-400" : "bg-gray-50 border-gray-200"}`}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium border ${
+                    markedForReview[currentIndex]
+                      ? "bg-yellow-50 border-yellow-400"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
                 >
                   {markedForReview[currentIndex] ? "Marked" : "Mark for review"}
                 </button>
@@ -360,7 +386,11 @@ const AttemptQuiz = () => {
                 return (
                   <label
                     key={i}
-                    className={`flex items-start gap-3 p-4 rounded-lg border transition ${checked ? "bg-indigo-50 border-indigo-600" : "bg-gray-50 border-gray-200 hover:bg-gray-100"}`}
+                    className={`flex items-start gap-3 p-4 rounded-lg border transition ${
+                      checked
+                        ? "bg-indigo-50 border-indigo-600"
+                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                    }`}
                   >
                     <input
                       type="checkbox"
@@ -490,7 +520,9 @@ const AttemptQuiz = () => {
 
               <div className="flex items-center justify-between">
                 <div>Answered</div>
-                <div className="font-semibold">{totalQuestions - unansweredCount}</div>
+                <div className="font-semibold">
+                  {totalQuestions - unansweredCount}
+                </div>
               </div>
 
               <div className="flex items-center justify-between">
@@ -500,14 +532,26 @@ const AttemptQuiz = () => {
 
               <div className="flex items-center justify-between">
                 <div>Marked</div>
-                <div className="font-semibold">{Object.keys(markedForReview).filter(k => markedForReview[k]).length}</div>
+                <div className="font-semibold">
+                  {
+                    Object.keys(markedForReview).filter(
+                      (k) => markedForReview[k]
+                    ).length
+                  }
+                </div>
               </div>
 
               <div className="pt-3">
                 <button
                   onClick={() => {
                     // quick jump to first unanswered
-                    const firstUnanswered = quiz.questions.findIndex((_, idx) => !(selectedAnswers[idx] && selectedAnswers[idx].length > 0));
+                    const firstUnanswered = quiz.questions.findIndex(
+                      (_, idx) =>
+                        !(
+                          selectedAnswers[idx] &&
+                          selectedAnswers[idx].length > 0
+                        )
+                    );
                     if (firstUnanswered === -1) goTo(0);
                     else goTo(firstUnanswered);
                   }}
@@ -521,7 +565,9 @@ const AttemptQuiz = () => {
             {/* small hints */}
             <div className="bg-white rounded-2xl p-3 shadow text-xs text-gray-600">
               <div>Tab switches: {tabSwitchCount}</div>
-              <div className="mt-2">Tip: Use palette to jump between questions fast.</div>
+              <div className="mt-2">
+                Tip: Use palette to jump between questions fast.
+              </div>
             </div>
           </div>
         </aside>
@@ -534,8 +580,19 @@ const AttemptQuiz = () => {
           className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm md:text-base shadow-lg flex items-center gap-2"
           title="Submit Quiz"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
           Submit
         </button>
@@ -546,10 +603,23 @@ const AttemptQuiz = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl p-6 w-11/12 max-w-md shadow-xl">
             <h3 className="text-lg font-semibold mb-2">Submit Quiz?</h3>
-            <p className="text-sm text-gray-600 mb-4">Once you submit, you won't be able to change your answers. Are you sure?</p>
+            <p className="text-sm text-gray-600 mb-4">
+              Once you submit, you won't be able to change your answers. Are you
+              sure?
+            </p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setConfirmOpen(false)} className="px-4 py-2 rounded-lg bg-gray-100">Cancel</button>
-              <button onClick={handleSubmit} className="px-4 py-2 rounded-lg bg-red-600 text-white">Submit</button>
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white"
+              >
+                Submit
+              </button>
             </div>
           </div>
         </div>

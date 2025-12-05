@@ -254,13 +254,13 @@ const deleteQuize = asyncHandler(async (req, res) => {
 });
 
 const getQuizeResponseById = asyncHandler(async (req, res) => {
-  const { id: quizeId } = req.params;
+  const { id} = req.params;
   const studentId = req.user?.id;
 
   if (!studentId) throw new ApiError(400, "Student not found");
-  if (!quizeId) throw new ApiError(400, "Quiz ID missing");
+  if (!id) throw new ApiError(400, "Quiz ID missing");
 
-  const quiz = await Quize.findById(quizeId).populate("questions");
+  const quiz = await Quize.findById(id).populate("questions");
   if (!quiz) throw new ApiError(404, "Quiz not found");
 
   const userAnswers = req.body.answers || [];
