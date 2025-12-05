@@ -8,6 +8,7 @@ import {
   getQuizeById,
   deleteQuize,
   getQuizeResponseById,
+  getResult,
 } from "../controllers/quizzes.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 const router = Router();
@@ -51,4 +52,5 @@ router.post(
   roleVerification(["Student"]),
   getQuizeResponseById
 );
+router.get("/result/:id", verifyJwt, roleVerification(["Student"]), getResult);
 export default router;

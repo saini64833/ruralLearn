@@ -28,7 +28,7 @@ import QuizeUpload from "./pages/QuizeUpload.jsx";
 import QuizeUpdate from "./pages/Quizeupdate.jsx";
 import QuizeDetail from "./pages/QuizeDetail.jsx";
 import AttemptQuiz from "./pages/AttemptQuiz.jsx";
-
+import ResultQuiz from "./pages/ResultQuiz.jsx";
 const AppWrapper = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -133,6 +133,11 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/quizzes/result/:id" element={
+          <ProtectedRoute>
+            <ResultQuiz/>
+          </ProtectedRoute>
+        } />
 
         {/* 👤 Dashboard */}
         <Route

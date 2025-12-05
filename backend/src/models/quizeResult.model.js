@@ -8,7 +8,7 @@ const answerSchema = new Schema({
   },
   selectedOptionIndex: {
     type: [Number],   
-    required: true,
+    default:[],
   },
   isCorrect: {
     type: Boolean,
@@ -24,7 +24,7 @@ const quizeResultSchema = new Schema(
   {
     quiz: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Quiz",
+      ref: "Quize",
       required: true,
     },
     student: {
@@ -34,10 +34,6 @@ const quizeResultSchema = new Schema(
     },
     answers: {
       type: [answerSchema],
-      validate: {
-        validator: (arr) => arr.length > 0,
-        message: "Quiz must have at least one answer",
-      },
     },
     totalScore: {
       type: Number,

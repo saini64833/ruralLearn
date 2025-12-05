@@ -191,11 +191,9 @@ const AttemptQuiz = () => {
     setConfirmOpen(false);
 
     try {
-      const raw = Object.values(selectedAnswers);
-
       const payload = {
-        answers: raw.map((ans) => ({
-          selectedOptionIndex: Array.isArray(ans) ? ans : [],
+        answers: quiz.questions.map((q, index) => ({
+          selectedOptionIndex: selectedAnswers[index] || [],
         })),
       };
 
@@ -218,16 +216,9 @@ const AttemptQuiz = () => {
     setTimeUp(true);
 
     try {
-      let raw = answersSnapshot.answers || answersSnapshot || selectedAnswers;
-
-      if (!Array.isArray(raw)) {
-        raw = Object.values(raw);
-      }
-
-      const formattedAnswers = raw.map((ans) => ({
-        selectedOptionIndex: Array.isArray(ans) ? ans : [],
+      const formattedAnswers = quiz.questions.map((q, index) => ({
+        selectedOptionIndex: selectedAnswers[index] || [],
       }));
-
       await axiosInstance.post(`/quizzes/response/${id}`, {
         answers: formattedAnswers,
       });

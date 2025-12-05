@@ -254,8 +254,8 @@ const deleteQuize = asyncHandler(async (req, res) => {
 });
 
 const getQuizeResponseById = asyncHandler(async (req, res) => {
-  const { id} = req.params;
-  const studentId = req.user?.id;
+  const { id } = req.params;
+  const studentId = req.user?._id;
 
   if (!studentId) throw new ApiError(400, "Student not found");
   if (!id) throw new ApiError(400, "Quiz ID missing");
@@ -271,23 +271,20 @@ const getQuizeResponseById = asyncHandler(async (req, res) => {
   quiz.questions.forEach((question, index) => {
     const selected = userAnswers[index]?.selectedOptionIndex || [];
 
-    if (!selected || selected.length === 0) {
-      answersArray.push({
-        questionId: question._id,
-        selectedOptionIndex: [],
-        isCorrect: false,
-        score: 0,
-      });
-      return; 
+    let score = 0; // Default 0
+    let isCorrect = false;
+
+    if (selected.length > 0) {
+      const correctIndexes = Array.isArray(question.correctAnswerIndex)
+        ? [...question.correctAnswerIndex].sort()
+        : [question.correctAnswerIndex];
+
+      const selectedSorted = [...selected].sort();
+      isCorrect =
+        JSON.stringify(correctIndexes) === JSON.stringify(selectedSorted);
+      score = isCorrect ? question.marks : 0; // 0 for incorrect answers
     }
-
-    const correctIndexes = [...question.correctAnswerIndex].sort();
-    const selectedSorted = [...selected].sort();
-
-    const isCorrect =
-      JSON.stringify(correctIndexes) === JSON.stringify(selectedSorted);
-
-    let score = isCorrect ? question.marks : -1;
+    // If not attempted, score stays 0
 
     totalScore += score;
 
@@ -303,7 +300,7 @@ const getQuizeResponseById = asyncHandler(async (req, res) => {
     quiz.totalMarks > 0 ? (totalScore / quiz.totalMarks) * 100 : 0;
 
   const result = await QuizeResult.create({
-    quiz: quizeId,
+    quiz: id,
     student: studentId,
     answers: answersArray,
     totalScore,
@@ -312,12 +309,40 @@ const getQuizeResponseById = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Quiz checked successfully",
+    message: "Quiz submitted successfully",
     result,
   });
 });
 
+const getResult = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const studentId = req.user?._id;
 
+  if (!studentId) throw new ApiError(400, "Student not found");
+  if (!id) throw new ApiError(400, "Quiz ID missing");
+
+  const result = await QuizeResult.findOne({
+    quiz: id,
+    student: studentId,
+  })
+    .populate({
+      path: "answers.questionId",
+      select: "questionText options correctAnswerIndex marks",
+    })
+    .populate({
+      path: "quiz",
+      select: "title totalMarks",
+    });
+
+  if (!result) throw new ApiError(404, "Result not found");
+  result.answers.forEach((ans, i) => {
+    console.log(`Q${i + 1} selected options:`, ans.selectedOptionIndex);
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, result, "Result fetched successfully"));
+});
 export {
   uploadQuize,
   updateQuize,
@@ -325,4 +350,5 @@ export {
   getQuizeById,
   deleteQuize,
   getQuizeResponseById,
+  getResult,
 };
