@@ -254,23 +254,22 @@ const deleteQuize = asyncHandler(async (req, res) => {
 });
 
 const getQuizeResponseById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { id: quizeId } = req.params;
   const studentId = req.user?.id;
 
   if (!studentId) throw new ApiError(400, "Student not found");
-  if (!id) throw new ApiError(400, "Quiz ID missing");
+  if (!quizeId) throw new ApiError(400, "Quiz ID missing");
 
-  const quiz = await Quize.findById(id).populate("questions");
+  const quiz = await Quize.findById(quizeId).populate("questions");
   if (!quiz) throw new ApiError(404, "Quiz not found");
 
-  const userAnswers = req.body.answers || {};
+  const userAnswers = req.body.answers || [];
 
   let answersArray = [];
   let totalScore = 0;
 
   quiz.questions.forEach((question, index) => {
-
-    const selected = userAnswers[index] || [];
+    const selected = userAnswers[index]?.selectedOptionIndex || [];
 
     if (!selected || selected.length === 0) {
       answersArray.push({
@@ -279,19 +278,16 @@ const getQuizeResponseById = asyncHandler(async (req, res) => {
         isCorrect: false,
         score: 0,
       });
-      return;
+      return; 
     }
 
-    const correctIndexes = question.correctAnswerIndex; 
+    const correctIndexes = [...question.correctAnswerIndex].sort();
+    const selectedSorted = [...selected].sort();
+
     const isCorrect =
-      JSON.stringify(correctIndexes.sort()) === JSON.stringify(selected.sort());
+      JSON.stringify(correctIndexes) === JSON.stringify(selectedSorted);
 
-    let score = 0;
-    if (isCorrect) {
-      score = question.marks;
-    } else {
-      score = question.negativeMarks ? -question.negativeMarks : 0;
-    }
+    let score = isCorrect ? question.marks : -1;
 
     totalScore += score;
 

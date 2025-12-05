@@ -7,7 +7,7 @@ const answerSchema = new Schema({
     required: true,
   },
   selectedOptionIndex: {
-    type: Number,
+    type: [Number],   
     required: true,
   },
   isCorrect: {
@@ -62,6 +62,5 @@ quizeResultSchema.pre("save", function (next) {
   }
   next();
 });
-
 
 export const QuizeResult = mongoose.model("QuizeResult", quizeResultSchema);
