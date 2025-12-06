@@ -66,3 +66,4 @@ const QuizeCard = ({ quiz }) => {
 };
 
 export default QuizeCard;
+  

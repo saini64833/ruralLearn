@@ -229,15 +229,6 @@ const AttemptQuiz = () => {
     }
   };
 
-  const handleReattempt = () => {
-    localStorage.removeItem(STORAGE_KEYS.start);
-    localStorage.removeItem(STORAGE_KEYS.answers);
-    localStorage.removeItem(STORAGE_KEYS.marked);
-    localStorage.removeItem(STORAGE_KEYS.visited);
-    navigate(`/quizzes/attempt/${id}`, { replace: true });
-    window.location.reload();
-  };
-
   if (loading || !quiz) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-600">
@@ -262,13 +253,6 @@ const AttemptQuiz = () => {
               className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold"
             >
               View Results
-            </button>
-
-            <button
-              onClick={handleReattempt}
-              className="px-5 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
-            >
-              Reattempt Quiz
             </button>
           </div>
         </div>

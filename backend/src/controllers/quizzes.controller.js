@@ -51,7 +51,6 @@ const uploadQuize = asyncHandler(async (req, res) => {
       throw new ApiError(400, `Question ${i + 1} marks are required`);
   }
 
-  // Create all questions in DB
   const createdQuestions = await Question.insertMany(
     questions.map((q) => ({
       questionText: q.questionText,
@@ -67,7 +66,6 @@ const uploadQuize = asyncHandler(async (req, res) => {
       ? tags.split(",").map((t) => t.trim())
       : [];
 
-  // Create quiz
   const quize = await Quize.create({
     title: title.trim(),
     subject: subject.trim(),
@@ -253,102 +251,70 @@ const deleteQuize = asyncHandler(async (req, res) => {
     );
 });
 
-const getQuizeResponseById = asyncHandler(async (req, res) => {
+const getQuizResponse = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const studentId = req.user?._id;
-
-  if (!studentId) throw new ApiError(400, "Student not found");
-  if (!id) throw new ApiError(400, "Quiz ID missing");
-
+  if (!id) {
+    throw new ApiError(400, "id does not found!!");
+  }
+  const { studentId } = req?.user.id;
+  if (!studentId) {
+    throw new ApiError(400, "student id is required!!");
+  }
+  const attemptedResponse = await QuizeResult.findOne({
+    quizId: id,
+    studentId,
+  });
+  if (attemptedResponse) {
+    throw new ApiError(402, "quize already attempted!!");
+  }
+  const userAnswers = req.body.answers;
+  if (!userAnswers) {
+    throw new ApiError(400, "need to select one option");
+  }
   const quiz = await Quize.findById(id).populate("questions");
-  if (!quiz) throw new ApiError(404, "Quiz not found");
+  if (!quiz) {
+    throw new ApiError(401, "quize does not found!!");
+  }
 
-  const userAnswers = req.body.answers || [];
-
-  let answersArray = [];
-  let totalScore = 0;
-
-  quiz.questions.forEach((question, index) => {
-    const selected = userAnswers[index]?.selectedOptionIndex || [];
-
-    let score = 0; // Default 0
-    let isCorrect = false;
-
-    if (selected.length > 0) {
-      const correctIndexes = Array.isArray(question.correctAnswerIndex)
-        ? [...question.correctAnswerIndex].sort()
-        : [question.correctAnswerIndex];
-
-      const selectedSorted = [...selected].sort();
-      isCorrect =
-        JSON.stringify(correctIndexes) === JSON.stringify(selectedSorted);
-      score = isCorrect ? question.marks : 0; // 0 for incorrect answers
-    }
-    // If not attempted, score stays 0
-
-    totalScore += score;
-
-    answersArray.push({
-      questionId: question._id,
-      selectedOptionIndex: selected,
+  quiz.questions.forEach((q) => {
+    const userAnswer = userAnswers.find(
+      (a) => a.questionId === q._id.toString()
+    );
+    const isCorrect =
+      userAnswer && q.correctAnswerIndex === userAnswer.selectedOptionIndex;
+    answers.push({
+      quizId: id,
+      selectedOptionIndex,
       isCorrect,
-      score,
+      score: isCorrect ? q.marks : 0,
     });
   });
 
-  const totalPercentage =
-    quiz.totalMarks > 0 ? (totalScore / quiz.totalMarks) * 100 : 0;
-
-  const result = await QuizeResult.create({
-    quiz: id,
-    student: studentId,
-    answers: answersArray,
+  const totalMarks = quiz.totalMarks;
+  const totalPercentage = (totalScore / totalMarks) * 100;
+  const response = await QuizeResult.create({
+    quizId: id,
+    studentId,
+    answers,
     totalScore,
     totalPercentage,
   });
+  if (!response) {
+    throw new ApiError(400, "response have some issue");
+  }
 
-  res.status(200).json({
-    success: true,
-    message: "Quiz submitted successfully",
-    result,
-  });
-});
-
-const getResult = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const studentId = req.user?._id;
-
-  if (!studentId) throw new ApiError(400, "Student not found");
-  if (!id) throw new ApiError(400, "Quiz ID missing");
-
-  const result = await QuizeResult.findOne({
-    quiz: id,
-    student: studentId,
-  })
-    .populate({
-      path: "answers.questionId",
-      select: "questionText options correctAnswerIndex marks",
-    })
-    .populate({
-      path: "quiz",
-      select: "title totalMarks",
-    });
-
-  if (!result) throw new ApiError(404, "Result not found");
-  result.answers.forEach((ans, i) => {
-    console.log(`Q${i + 1} selected options:`, ans.selectedOptionIndex);
-  });
-
-  res
+  return res
     .status(200)
-    .json(new ApiResponse(200, result, "Result fetched successfully"));
+    .json(
+      new ApiResponse(200, response, "quize response taken successfully!!")
+    );
 });
+
 export {
   uploadQuize,
   updateQuize,
   getAllQuizzes,
   getQuizeById,
   deleteQuize,
-  getQuizeResponseById,
-  getResult,
+  getQuizResponse,
 };

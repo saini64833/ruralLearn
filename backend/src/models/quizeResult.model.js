@@ -7,8 +7,7 @@ const answerSchema = new Schema({
     required: true,
   },
   selectedOptionIndex: {
-    type: [Number],   
-    default:[],
+    type: Number,   
   },
   isCorrect: {
     type: Boolean,
@@ -22,12 +21,12 @@ const answerSchema = new Schema({
 
 const quizeResultSchema = new Schema(
   {
-    quiz: {
+    quizId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Quize",
       required: true,
     },
-    student: {
+    studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
