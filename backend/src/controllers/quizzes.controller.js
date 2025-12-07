@@ -253,45 +253,64 @@ const deleteQuize = asyncHandler(async (req, res) => {
 
 const getQuizResponse = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  if (!id) {
-    throw new ApiError(400, "id does not found!!");
-  }
-  const { studentId } = req?.user.id;
-  if (!studentId) {
-    throw new ApiError(400, "student id is required!!");
-  }
+
+  if (!id) throw new ApiError(400, "Quiz ID not found!");
+
+  const studentId = req.user.id;
+  if (!studentId) throw new ApiError(400, "Student ID required!");
+
   const attemptedResponse = await QuizeResult.findOne({
     quizId: id,
     studentId,
   });
+
   if (attemptedResponse) {
-    throw new ApiError(402, "quize already attempted!!");
+    throw new ApiError(402, "Quiz already attempted!");
   }
+
   const userAnswers = req.body.answers;
-  if (!userAnswers) {
-    throw new ApiError(400, "need to select one option");
+  if (!Array.isArray(userAnswers)) {
+    throw new ApiError(400, "Invalid answer format!");
   }
+
+
   const quiz = await Quize.findById(id).populate("questions");
-  if (!quiz) {
-    throw new ApiError(401, "quize does not found!!");
-  }
+  if (!quiz) throw new ApiError(401, "Quiz not found!");
+
+  const answers = [];
+  let totalScore = 0;
+
 
   quiz.questions.forEach((q) => {
     const userAnswer = userAnswers.find(
       (a) => a.questionId === q._id.toString()
     );
+
+    const selectedOptionIndex =
+      userAnswer && userAnswer.selectedOptionIndex !== undefined
+        ? userAnswer.selectedOptionIndex
+        : null;
+
+
     const isCorrect =
-      userAnswer && q.correctAnswerIndex === userAnswer.selectedOptionIndex;
+      selectedOptionIndex !== null &&
+      selectedOptionIndex === q.correctAnswerIndex;
+
+    const score = isCorrect ? q.marks : 0;
+    totalScore += score;
+
     answers.push({
-      quizId: id,
+      questionId: q._id,
       selectedOptionIndex,
       isCorrect,
-      score: isCorrect ? q.marks : 0,
+      score,
     });
   });
 
-  const totalMarks = quiz.totalMarks;
+
+  const totalMarks = quiz.totalMarks || quiz.questions.length * 1;
   const totalPercentage = (totalScore / totalMarks) * 100;
+
   const response = await QuizeResult.create({
     quizId: id,
     studentId,
@@ -299,17 +318,37 @@ const getQuizResponse = asyncHandler(async (req, res) => {
     totalScore,
     totalPercentage,
   });
-  if (!response) {
-    throw new ApiError(400, "response have some issue");
-  }
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, response, "quize response taken successfully!!")
+      new ApiResponse(200, response, "Quiz response taken successfully!")
     );
 });
 
+
+
+const resultView = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    throw new ApiError(400, "id is required!!");
+  }
+  const { studentId } = req?.user.id;
+  if (!studentId) {
+    throw new ApiError(400, "student id is required!!");
+  }
+
+  const result = await QuizeResult.findOne({
+    quizId: id,
+    studentId,
+  }).populate(answers);
+  if (!result) {
+    throw new ApiError(400, "you need to attemp  quize");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result, "result viewed successfully!!"));
+});
 export {
   uploadQuize,
   updateQuize,
@@ -317,4 +356,5 @@ export {
   getQuizeById,
   deleteQuize,
   getQuizResponse,
+  resultView,
 };

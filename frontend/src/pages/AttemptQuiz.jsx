@@ -170,15 +170,11 @@ const AttemptQuiz = () => {
     next();
   };
 
-  const handleOptionToggle = (qIndex, optIndex) => {
-    setSelectedAnswers((prev) => {
-      const selected = prev[qIndex] || [];
-      const exists = selected.includes(optIndex);
-      const newSel = exists
-        ? selected.filter((x) => x !== optIndex)
-        : [...selected, optIndex];
-      return { ...prev, [qIndex]: newSel };
-    });
+  const handleOptionSelect = (qIndex, optIndex) => {
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [qIndex]: optIndex,
+    }));
     setVisited((v) => ({ ...v, [qIndex]: true }));
   };
 
@@ -193,11 +189,17 @@ const AttemptQuiz = () => {
     try {
       const payload = {
         answers: quiz.questions.map((q, index) => ({
-          selectedOptionIndex: selectedAnswers[index] || [],
+          selectedOptionIndex:
+            selectedAnswers[index] !== undefined
+              ? selectedAnswers[index]
+              : null,
         })),
       };
 
-      await axiosInstance.post(`/quizzes/response/${id}`, payload);
+      const { data } = await axiosInstance.post(
+        `/quizzes/response/${id}`,
+        payload
+      );
 
       localStorage.removeItem(STORAGE_KEYS.start);
       localStorage.removeItem(STORAGE_KEYS.answers);
@@ -217,11 +219,19 @@ const AttemptQuiz = () => {
 
     try {
       const formattedAnswers = quiz.questions.map((q, index) => ({
-        selectedOptionIndex: selectedAnswers[index] || [],
+        selectedOptionIndex:
+          selectedAnswers[index] !== undefined ? selectedAnswers[index] : null,
       }));
-      await axiosInstance.post(`/quizzes/response/${id}`, {
+
+      const { data } = await axiosInstance.post(`/quizzes/response/${id}`, {
         answers: formattedAnswers,
       });
+
+      // ⬇️ IMPORTANT: backend must return resultId
+      const resultId = data.data.resultId;
+
+      // navigate to result page automatically
+      navigate(`/quizzes/result/${id}`);
     } catch (err) {
       console.error("Auto submit failed:", err);
     } finally {
@@ -261,7 +271,7 @@ const AttemptQuiz = () => {
   }
 
   const q = quiz.questions[currentIndex];
-  const currentSelected = selectedAnswers[currentIndex] || [];
+  const currentSelected = selectedAnswers[currentIndex] ?? null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-white text-gray-900">
@@ -357,7 +367,7 @@ const AttemptQuiz = () => {
             {/* Options */}
             <div className="mt-5 space-y-3">
               {q.options.map((opt, i) => {
-                const checked = currentSelected.includes(i);
+                const checked = currentSelected === i;
                 return (
                   <label
                     key={i}
@@ -368,11 +378,13 @@ const AttemptQuiz = () => {
                     }`}
                   >
                     <input
-                      type="checkbox"
+                      type="radio"
+                      name={`question-${currentIndex}`} // important: one group per question
                       className="mt-1 h-5 w-5 accent-indigo-600"
-                      checked={checked}
-                      onChange={() => handleOptionToggle(currentIndex, i)}
+                      checked={currentSelected === i}
+                      onChange={() => handleOptionSelect(currentIndex, i)}
                     />
+
                     <div className="text-sm leading-6">{opt}</div>
                   </label>
                 );

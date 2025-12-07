@@ -47,10 +47,6 @@ const quizeSchema = new Schema(
         type: String,
       },
     ],
-    isPublished: {
-      type: Boolean,
-      default: false,
-    },
     difficulty: {
       type: String,
       enum: ["easy", "hard", "medium"],

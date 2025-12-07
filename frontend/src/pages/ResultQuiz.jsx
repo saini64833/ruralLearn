@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
 const ResultQuiz = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [result, setResult] = useState(null);
@@ -17,7 +17,7 @@ const ResultQuiz = () => {
       } catch (err) {
         console.error("Failed to fetch result:", err);
         alert("Failed to load result");
-        navigate("/quizzes/get-all-quizzes"); 
+        navigate("/quizzes/get-all-quizzes");
       } finally {
         setLoading(false);
       }
@@ -60,8 +60,8 @@ const ResultQuiz = () => {
       {/* Questions */}
       <div className="max-w-4xl mx-auto space-y-4">
         {answers.map((ans, idx) => {
-          const question = ans.questionId;
-          const selected = ans.selectedOptionIndex || [];
+          const question = ans.questionId; // populated question
+          const selected = ans.selectedOptionIndex; // number or null
           const isCorrect = ans.isCorrect;
 
           return (
@@ -70,79 +70,50 @@ const ResultQuiz = () => {
                 <h2 className="font-semibold">
                   Q{idx + 1}: {question.questionText}
                 </h2>
+
                 <div className="flex items-center gap-1">
                   {isCorrect ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-green-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <span className="text-green-600 font-medium">Correct</span>
                   ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-red-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <span className="text-red-600 font-medium">Incorrect</span>
                   )}
-                  <span
-                    className={`font-medium ${
-                      isCorrect ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {isCorrect ? "Correct" : "Incorrect"}
-                  </span>
                 </div>
               </div>
 
               {/* Options */}
               <ul className="list-disc list-inside space-y-1">
                 {question.options.map((opt, i) => {
-                  const selectedOpt = selected.includes(i);
-                  const correctOpt = question.correctAnswerIndex === i;
+                  const isSelected = selected === i;
+                  const isCorrectOpt = question.correctAnswerIndex === i;
 
                   return (
                     <li
                       key={i}
                       className={`px-2 py-1 rounded ${
-                        correctOpt
+                        isCorrectOpt
                           ? "bg-green-100 font-semibold"
-                          : selectedOpt
+                          : isSelected
                           ? "bg-red-100 line-through"
                           : ""
                       }`}
                     >
-                      {opt} {selectedOpt && !correctOpt ? "(Your choice)" : ""}
-                      {correctOpt ? " (Correct)" : ""}
+                      {opt}
+
+                      {/* tags */}
+                      {isSelected && !isCorrectOpt && " (Your choice)"}
+                      {isCorrectOpt && " (Correct)"}
                     </li>
                   );
                 })}
               </ul>
 
-              {/* Score for the question */}
+              {/* Score */}
               <p className="mt-2 text-gray-700 font-medium">
                 Score: {ans.score} / {question.marks}
               </p>
 
-              {/* If not attempted */}
-              {selected.length === 0 && (
+              {/* Not attempted */}
+              {selected === null && (
                 <p className="mt-1 text-gray-500 italic">Not Attempted</p>
               )}
             </div>
