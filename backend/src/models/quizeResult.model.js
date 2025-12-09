@@ -7,7 +7,7 @@ const answerSchema = new Schema({
     required: true,
   },
   selectedOptionIndex: {
-    type: Number,   
+    type: Number,
   },
   isCorrect: {
     type: Boolean,
@@ -46,6 +46,10 @@ const quizeResultSchema = new Schema(
       type: Date,
       default: Date.now,
       required: true,
+    },
+    isattempted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

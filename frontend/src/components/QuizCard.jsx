@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Timer, Star } from "lucide-react";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 
 const QuizeCard = ({ quiz }) => {
   const navigate = useNavigate();
@@ -23,9 +23,16 @@ const QuizeCard = ({ quiz }) => {
       className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-sm hover:shadow-xl border border-transparent hover:border-indigo-200 p-5 transition-all duration-300 h-full flex flex-col justify-between"
     >
       {/* Header */}
-      <div onClick={() => navigate(`/quizzes/quize/${quiz._id}`)} className="cursor-pointer">
-        <h2 className="text-lg font-bold text-indigo-700 truncate">{quiz?.title}</h2>
-        <p className="text-gray-600 text-sm font-medium mb-2">{quiz?.subject}</p>
+      <div
+        onClick={() => navigate(`/quizzes/quize/${quiz._id}`)}
+        className="cursor-pointer"
+      >
+        <h2 className="text-lg font-bold text-indigo-700 truncate">
+          {quiz?.title}
+        </h2>
+        <p className="text-gray-600 text-sm font-medium mb-2">
+          {quiz?.subject}
+        </p>
         <p className="text-gray-500 text-sm mt-2 line-clamp-3">
           {quiz?.description || "No description available."}
         </p>
@@ -51,19 +58,26 @@ const QuizeCard = ({ quiz }) => {
           {quiz?.difficulty || "Medium"}
         </span>
 
-        {/* ✅ Attempt Button (only for student) */}
-        {user?.role === "Student" && (
-          <button
-            onClick={() => navigate(`/quizzes/attempt/${quiz._id}`)}
-            className="bg-indigo-600 text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all"
-          >
-            Attempt
-          </button>
-        )}
+        {/* Buttons based on attempt status */}
+        {user?.role === "Student" &&
+          (quiz?.isattempted ? (
+            <button
+              onClick={() => navigate(`/quizzes/result/${quiz._id}`)}
+              className="bg-green-600 text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-green-700 transition-all"
+            >
+              Result
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate(`/quizzes/attempt/${quiz._id}`)}
+              className="bg-indigo-600 text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all"
+            >
+              Attempt
+            </button>
+          ))}
       </div>
     </motion.div>
   );
 };
 
 export default QuizeCard;
-  

@@ -195,15 +195,37 @@ const updateQuize = asyncHandler(async (req, res) => {
 });
 
 const getAllQuizzes = asyncHandler(async (req, res) => {
+  const studentId = req.user._id; // logged-in student
+
+  // fetch all quizzes
   const quizzes = await Quize.find().sort({ createdAt: -1 });
 
   if (!quizzes || quizzes.length === 0) {
     return res.status(404).json(new ApiResponse(404, [], "No quizzes found"));
   }
 
+  const results = await QuizeResult.find({ studentId });
+
+  const resultMap = {};
+  results.forEach((r) => {
+    resultMap[r.quizId] = {
+      isattempted: r.isattempted,
+      resultId: r._id,
+    };
+  });
+
+  const quizList = quizzes.map((q) => {
+    const match = resultMap[q._id] || {};
+    return {
+      ...q.toObject(),
+      isattempted: match.isattempted || false,
+      resultId: match.resultId || null,
+    };
+  });
+
   return res
     .status(200)
-    .json(new ApiResponse(200, quizzes, "All quizzes fetched successfully"));
+    .json(new ApiResponse(200, quizList, "All quizzes fetched successfully"));
 });
 
 const getQuizeById = asyncHandler(async (req, res) => {
@@ -323,8 +345,8 @@ const getQuizResponse = asyncHandler(async (req, res) => {
     answers,
     totalScore,
     totalPercentage,
+    isattempted: true,
   });
-
   return res
     .status(200)
     .json(new ApiResponse(200, response, "Quiz response taken successfully!"));
@@ -343,12 +365,12 @@ const resultView = asyncHandler(async (req, res) => {
     quizId: id,
     studentId,
   })
-    .populate("quiz", "title totalMarks")
+    .populate("quizId", "title totalMarks")
     .populate({
       path: "answers.questionId",
       select: "questionText options correctAnswerIndex marks",
     });
-
+  console.log(result);
   if (!result) {
     throw new ApiError(400, "you need to attemp  quize");
   }
@@ -356,7 +378,6 @@ const resultView = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, result, "result viewed successfully!!"));
 });
-
 
 export {
   uploadQuize,

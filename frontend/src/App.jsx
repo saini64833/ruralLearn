@@ -126,18 +126,13 @@ const AppWrapper = () => {
           }
         />
         <Route
-          path="/quizzes/response/:id"
+          path="/quizzes/result/:id"
           element={
             <ProtectedRoute>
-              <AttemptQuiz />
+              <ResultQuiz />
             </ProtectedRoute>
           }
         />
-        <Route path="/quizzes/result/:id" element={
-          <ProtectedRoute>
-            <ResultQuiz/>
-          </ProtectedRoute>
-        } />
 
         {/* 👤 Dashboard */}
         <Route

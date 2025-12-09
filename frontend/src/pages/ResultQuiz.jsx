@@ -43,15 +43,15 @@ const ResultQuiz = () => {
     );
   }
 
-  const { quiz, answers, totalScore, totalPercentage } = result;
+  const { quizId, answers, totalScore, totalPercentage } = result;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 mb-6">
-        <h1 className="text-2xl font-bold mb-2">{quiz.title}</h1>
+        <h1 className="text-2xl font-bold mb-2">{quizId.title}</h1>
         <p className="text-gray-600">
-          Total Score: {totalScore} / {quiz.totalMarks}
+          Total Score: {totalScore} / {quizId.totalMarks}
         </p>
         <p className="text-gray-600">
           Percentage: {totalPercentage.toFixed(2)}%
@@ -76,7 +76,11 @@ const ResultQuiz = () => {
                   {isCorrect ? (
                     <span className="text-green-600 font-medium">Correct</span>
                   ) : (
-                    <span className="text-red-600 font-medium">Incorrect</span>
+                    selected != null ? (
+                      <span className="text-red-600 font-medium">Incorrect</span>
+                    ) : (
+                      <span className="text-yellow-600 font-medium">Not Attempted</span>
+                    )
                   )}
                 </div>
               </div>
