@@ -13,9 +13,10 @@ const ResultQuiz = () => {
     const fetchResult = async () => {
       try {
         const res = await axiosInstance.get(`/quizzes/result/${id}`);
+        console.log(res.data.data);
         setResult(res.data.data);
       } catch (err) {
-        console.error("Failed to fetch result:", err);
+        console.log("Failed to fetch result:", err);
         alert("Failed to load result");
         navigate("/quizzes/get-all-quizzes");
       } finally {

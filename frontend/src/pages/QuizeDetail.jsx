@@ -103,7 +103,7 @@ const QuizeDetail = () => {
                   <p className="font-medium text-gray-900">
                     {index + 1}. {q.questionText}
                   </p>
-                  <span className="text-sm text-gray-600">Marks: {q.marks || 1}</span>
+                  <span className="text-sm text-gray-600">Marks: {q.marks }</span>
                 </div>
 
                 <ul className="space-y-1 text-gray-700">

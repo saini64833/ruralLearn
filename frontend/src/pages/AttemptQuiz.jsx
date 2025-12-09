@@ -189,6 +189,7 @@ const AttemptQuiz = () => {
     try {
       const payload = {
         answers: quiz.questions.map((q, index) => ({
+          questionId: q._id,
           selectedOptionIndex:
             selectedAnswers[index] !== undefined
               ? selectedAnswers[index]

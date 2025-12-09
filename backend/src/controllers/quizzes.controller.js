@@ -85,6 +85,7 @@ const uploadQuize = asyncHandler(async (req, res) => {
 
 const updateQuize = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
   const {
     title,
     subject,
@@ -93,19 +94,17 @@ const updateQuize = asyncHandler(async (req, res) => {
     totalMarks,
     difficulty,
     tags,
-    questions,
-    deletedQuestions,
+    questions = [],
+    deletedQuestions = [],
   } = req.body;
 
   const existingQuiz = await Quize.findById(id);
   if (!existingQuiz) throw new ApiError(404, "Quiz not found!");
 
-  // Authorization check
   if (req.user?._id.toString() !== existingQuiz.createdBy.toString()) {
     throw new ApiError(403, "You are not authorized to update this quiz!");
   }
 
-  // Update quiz fields
   if (title) existingQuiz.title = title.trim();
   if (subject) existingQuiz.subject = subject.trim();
   if (description) existingQuiz.description = description.trim();
@@ -115,63 +114,74 @@ const updateQuize = asyncHandler(async (req, res) => {
 
   if (tags) {
     existingQuiz.tags = Array.isArray(tags)
-      ? tags
+      ? tags.map((t) => t.trim())
       : typeof tags === "string"
         ? tags.split(",").map((t) => t.trim())
         : existingQuiz.tags;
   }
 
-  // Delete questions if any
   if (Array.isArray(deletedQuestions) && deletedQuestions.length > 0) {
     for (const qId of deletedQuestions) {
       await Question.findByIdAndDelete(qId);
     }
+
     existingQuiz.questions = existingQuiz.questions.filter(
       (qid) => !deletedQuestions.includes(qid.toString())
     );
   }
 
-  // Update or add new questions
-  if (Array.isArray(questions) && questions.length > 0) {
-    const updatedQuestionIds = [];
+  const finalQuestionIds = [
+    ...existingQuiz.questions.map((id) => id.toString()),
+  ];
 
-    for (const q of questions) {
-      const { _id, questionText, options, correctAnswerIndex, marks } = q;
+  for (const q of questions) {
+    const { _id, questionText, options, correctAnswerIndex, marks } = q;
 
-      if (_id) {
-        const updatedQ = await Question.findByIdAndUpdate(
-          _id,
-          {
-            $set: {
-              ...(questionText && { questionText: questionText.trim() }),
-              ...(Array.isArray(options) && options.length >= 2 && { options }),
-              ...(correctAnswerIndex !== undefined && { correctAnswerIndex }),
-              ...(marks !== undefined && { marks: Number(marks) }),
-            },
-          },
-          { new: true }
-        );
+    const cleanOptions = Array.isArray(options)
+      ? options.map((o) => o.trim()).filter((o) => o.length > 0)
+      : [];
 
-        if (updatedQ) updatedQuestionIds.push(updatedQ._id);
-      } else {
-        const newQ = await Question.create({
-          questionText,
-          options,
-          correctAnswerIndex,
-          marks: marks !== undefined ? Number(marks) : 1,
-        });
-        updatedQuestionIds.push(newQ._id);
-      }
+    if (!questionText || cleanOptions.length < 2) {
+      throw new ApiError(
+        400,
+        "Each question must have text & at least 2 options."
+      );
     }
 
-    // Merge old and new question IDs, ensuring uniqueness
-    const uniqueIds = new Set([
-      ...existingQuiz.questions.map((id) => id.toString()),
-      ...updatedQuestionIds.map((id) => id.toString()),
-    ]);
+    if (_id) {
+      const updatedQ = await Question.findByIdAndUpdate(
+        _id,
+        {
+          $set: {
+            questionText: questionText.trim(),
+            options: cleanOptions,
+            correctAnswerIndex:
+              correctAnswerIndex === null ? null : Number(correctAnswerIndex),
+            marks: Number(marks) || 1,
+          },
+        },
+        { new: true }
+      );
 
-    existingQuiz.questions = Array.from(uniqueIds);
+      if (!updatedQ) throw new ApiError(404, `Question not found: ${_id}`);
+
+      if (!finalQuestionIds.includes(updatedQ._id.toString())) {
+        finalQuestionIds.push(updatedQ._id.toString());
+      }
+    } else {
+      const newQ = await Question.create({
+        questionText: questionText.trim(),
+        options: cleanOptions,
+        correctAnswerIndex:
+          correctAnswerIndex === null ? null : Number(correctAnswerIndex),
+        marks: Number(marks) || 1,
+      });
+
+      finalQuestionIds.push(newQ._id.toString());
+    }
   }
+
+  existingQuiz.questions = [...new Set(finalQuestionIds)];
 
   await existingQuiz.save();
 
@@ -206,7 +216,7 @@ const getQuizeById = asyncHandler(async (req, res) => {
   const quize = await Quize.findById(id)
     .populate({
       path: "questions",
-      select: "questionText options correctAnswerIndex,marks",
+      select: "questionText options correctAnswerIndex marks",
     })
     .populate({
       path: "createdBy",
@@ -273,13 +283,11 @@ const getQuizResponse = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid answer format!");
   }
 
-
   const quiz = await Quize.findById(id).populate("questions");
   if (!quiz) throw new ApiError(401, "Quiz not found!");
 
   const answers = [];
   let totalScore = 0;
-
 
   quiz.questions.forEach((q) => {
     const userAnswer = userAnswers.find(
@@ -290,7 +298,6 @@ const getQuizResponse = asyncHandler(async (req, res) => {
       userAnswer && userAnswer.selectedOptionIndex !== undefined
         ? userAnswer.selectedOptionIndex
         : null;
-
 
     const isCorrect =
       selectedOptionIndex !== null &&
@@ -307,7 +314,6 @@ const getQuizResponse = asyncHandler(async (req, res) => {
     });
   });
 
-
   const totalMarks = quiz.totalMarks || quiz.questions.length * 1;
   const totalPercentage = (totalScore / totalMarks) * 100;
 
@@ -321,27 +327,28 @@ const getQuizResponse = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, response, "Quiz response taken successfully!")
-    );
+    .json(new ApiResponse(200, response, "Quiz response taken successfully!"));
 });
-
-
 
 const resultView = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id) {
     throw new ApiError(400, "id is required!!");
   }
-  const { studentId } = req?.user.id;
+  const studentId = req.user.id;
   if (!studentId) {
     throw new ApiError(400, "student id is required!!");
   }
-
   const result = await QuizeResult.findOne({
     quizId: id,
     studentId,
-  }).populate(answers);
+  })
+    .populate("quiz", "title totalMarks")
+    .populate({
+      path: "answers.questionId",
+      select: "questionText options correctAnswerIndex marks",
+    });
+
   if (!result) {
     throw new ApiError(400, "you need to attemp  quize");
   }
@@ -349,6 +356,8 @@ const resultView = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, result, "result viewed successfully!!"));
 });
+
+
 export {
   uploadQuize,
   updateQuize,
