@@ -5,7 +5,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import Offline from "./pages/offline.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -49,7 +49,6 @@ const AppWrapper = () => {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-
         {/* Lesson Routes */}
         <Route
           path="/lessons/get-all-lessons"
@@ -83,7 +82,6 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
-
         {/*  Quiz Routes */}
         <Route
           path="/quizzes/get-all-quizzes"
@@ -133,8 +131,7 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* 👤 Dashboard */}
+        {/*  Dashboard */}
         <Route
           path="/users/me"
           element={
@@ -143,6 +140,8 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+        {/* offline route */}
+        <Route path="/offline" element={<Offline />} />
       </Routes>
     </>
   );
