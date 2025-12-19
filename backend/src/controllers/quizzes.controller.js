@@ -195,9 +195,9 @@ const updateQuize = asyncHandler(async (req, res) => {
 });
 
 const getAllQuizzes = asyncHandler(async (req, res) => {
-  const studentId = req.user._id; // logged-in student
+  const studentId = req.user._id;
 
-  // fetch all quizzes
+
   const quizzes = await Quize.find().sort({ createdAt: -1 });
 
   if (!quizzes || quizzes.length === 0) {
