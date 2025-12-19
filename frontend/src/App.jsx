@@ -9,7 +9,7 @@ import Offline from "./pages/offline.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-
+import PublicRoute from "./components/PublicRoute.jsx";
 //  Pages
 import Home from "./pages/Home.jsx";
 import Register from "./pages/Register.jsx";
@@ -33,7 +33,6 @@ const AppWrapper = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
-  // ✅ Show Loader on route change
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), 300);
@@ -46,9 +45,30 @@ const AppWrapper = () => {
       <Navbar />
       <Routes>
         {/*  Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Home />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
         {/* Lesson Routes */}
         <Route
           path="/lessons/get-all-lessons"

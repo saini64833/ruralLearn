@@ -4,20 +4,13 @@ import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  base:"/",
+  base: "/",  
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-
-      includeAssets: [
-        "favicon.ico",
-        "robots.txt",
-        "icons/icon-192.png",
-        "icons/icon-512.png",
-      ],
-
+      includeAssets: ["favicon.ico", "robots.txt", "icons/icon-192.png", "icons/icon-512.png"],
       manifest: {
         name: "Rural Learn",
         short_name: "RuralLearn",
@@ -27,40 +20,24 @@ export default defineConfig({
         theme_color: "#0d6efd",
         background_color: "#ffffff",
         icons: [
-          {
-            src: "/icons/icon-192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/icons/icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
         ],
       },
-
       workbox: {
         cleanupOutdatedCaches: true,
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/],
-
         runtimeCaching: [
           {
-            // Cache PDFs after first load
             urlPattern: ({ request }) => request.destination === "document",
             handler: "NetworkFirst",
-            options: {
-              cacheName: "documents-cache",
-            },
+            options: { cacheName: "documents-cache" },
           },
           {
-            // Cache API GET requests (lesson list, quizzes)
             urlPattern: ({ url }) => url.pathname.startsWith("/api"),
             handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-            },
+            options: { cacheName: "api-cache" },
           },
         ],
       },
