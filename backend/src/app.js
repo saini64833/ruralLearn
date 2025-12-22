@@ -25,12 +25,10 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/lessons", lessonRouter);
 app.use("/api/v1/quizzes", quizeRouter);
 
-// 🔥 Serve frontend build (Node 22 SAFE)
 const __dirname = path.resolve();
 
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
-// ✅ REGEX fallback (THIS IS THE FIX)
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(
     path.join(__dirname, "frontend/dist/index.html")
