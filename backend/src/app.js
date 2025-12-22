@@ -5,9 +5,21 @@ import path from "path";
 
 const app = express();
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",")
+  : [];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "https://your-frontend.vercel.app",
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -30,9 +42,7 @@ const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
 app.get(/^(?!\/api).*/, (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "frontend/dist/index.html")
-  );
+  res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
 });
 
 export { app };
