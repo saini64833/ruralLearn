@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import path from "path";
 
 const app = express();
 
@@ -11,13 +10,9 @@ const allowedOrigins = process.env.CORS_ORIGIN
 
 app.use(
   cors({
-    origin: function (origin, callback) {
+    origin(origin, callback) {
       if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
+      if (allowedOrigins.includes(origin)) return callback(null, true);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -37,12 +32,9 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/lessons", lessonRouter);
 app.use("/api/v1/quizzes", quizeRouter);
 
-const __dirname = path.resolve();
-
-app.use(express.static(path.join(__dirname, "frontend/dist")));
-
-app.get(/^(?!\/api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
+// health check
+app.get("/", (req, res) => {
+  res.send("API is running 🚀");
 });
 
 export { app };
