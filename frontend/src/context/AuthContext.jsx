@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
 
       return JSON.parse(saved);
     } catch (err) {
-      console.error("Failed to parse user from localStorage", err);
+      console.log("Failed to parse user from localStorage", err);
       return null;
     }
   });
@@ -28,11 +28,8 @@ export const AuthProvider = ({ children }) => {
         const token = res.data.data.accessToken;
         const userData = res.data.data.user;
 
-        // Store securely
         localStorage.setItem("accessToken", token);
         localStorage.setItem("user", JSON.stringify(userData));
-
-        // Set axios default header
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${token}`;
