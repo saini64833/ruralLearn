@@ -10,8 +10,6 @@ app.use(
       if (!origin) return callback(null, true);
 
       const allowedOrigins = process.env.CORS_ORIGIN
-        ? process.env.CORS_ORIGIN.split(",")
-        : [];
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
