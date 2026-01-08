@@ -11,7 +11,6 @@ import Offline from "./pages/offline.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import PublicRoute from "./components/PublicRoute.jsx";
 //  Pages
 import Home from "./pages/Home.jsx";
 import Register from "./pages/Register.jsx";
