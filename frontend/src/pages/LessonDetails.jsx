@@ -9,12 +9,12 @@ const LessonDetail = () => {
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
-
+  const [isOpen, setIsOpen] = useState(false);
+  const [comments, setComments] = useState([]);
   const fetchLesson = async () => {
     try {
       const res = await axiosInstance.get(`/lessons/${id}`);
       setLesson(res.data?.data);
-      console.log(res.data.data);
     } catch (err) {
       console.log(err);
       alert("Error fetching lesson");
@@ -22,6 +22,16 @@ const LessonDetail = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => (document.body.style.overflow = "auto");
+  }, [isOpen]);
 
   useEffect(() => {
     fetchLesson();
@@ -36,16 +46,17 @@ const LessonDetail = () => {
     }
   };
 
-  const handleComment = async () => {
+  const handleComment = async (e) => {
+    e.stopPropagation();
     if (!commentText.trim()) return;
     try {
-      const res = await axiosInstance.post(`/lessons/${id}/comment`, {
+      const res = await axiosInstance.post(`/lessons/${lesson._id}/comment`, {
         text: commentText,
       });
-      setLesson({ ...lesson, comments: res.data.comments });
+      setComments(res.data?.data || []);
       setCommentText("");
     } catch (err) {
-      console.error(err);
+      console.error("Comment failed:", err);
     }
   };
 
@@ -65,7 +76,7 @@ const LessonDetail = () => {
       <p className="mb-2">
         <strong>Content:</strong> {lesson.content}
       </p>
-      <p className="mb-4">
+      <p className="mb-4 ">
         <strong>Tags:</strong> {lesson.tags?.join(", ")}
       </p>
 
@@ -113,30 +124,84 @@ const LessonDetail = () => {
 
       {/* ✅ Comments Section */}
       <div className="mb-4">
-        <h2 className="font-semibold mb-2">Comments</h2>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="text"
-            placeholder="Add a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            className="border p-1 flex-1 rounded"
-          />
-          <button
-            className="bg-blue-500 text-white px-3 rounded"
-            onClick={handleComment}
-          >
-            Comment
-          </button>
-        </div>
-        <ul>
-          {lesson.comments?.map((c, i) => (
-            <li key={i} className="border-b py-1">
-              {c.text}
-            </li>
-          ))}
-        </ul>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition flex items-center gap-1"
+        >
+          View comments
+          <span className="text-xs">→</span>
+        </button>
       </div>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* BACKDROP */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-md"
+            onClick={() => setIsOpen(false)}
+          />
+
+          {/* MODAL */}
+          <div className="relative w-full max-w-md rounded-3xl bg-white/90 shadow-2xl overflow-hidden">
+            {/* HEADER */}
+            <div className="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center">
+              <h2 className="text-lg font-semibold tracking-wide">
+                Community Comments
+              </h2>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white/80 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* CONTENT */}
+            <div className="p-5 flex flex-col gap-4">
+              {/* INPUT */}
+              <div className="flex gap-3 items-start bg-gray-50 p-3 rounded-2xl shadow-sm">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Share your thoughts..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    className="w-full bg-transparent border-none outline-none text-sm placeholder-gray-400"
+                  />
+                </div>
+
+                <button
+                  onClick={handleComment}
+                  className="bg-indigo-600 text-white px-4 py-1.5 rounded-xl hover:bg-indigo-700 transition"
+                >
+                  Post
+                </button>
+              </div>
+
+              {/* COMMENTS */}
+              <div className="flex-1 max-h-64 overflow-y-auto space-y-4 pr-1">
+                {comments.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center mt-8">
+                    Start the conversation
+                  </p>
+                ) : (
+                  comments.map((c) => (
+                    <div key={c._id} className="flex gap-3">
+                      <div className="bg-gray-100 rounded-xl px-4 py-2 w-full">
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-400">
+                            {new Date(c.createdAt).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <p className="text-sm">{c.text}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -4,6 +4,8 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
 import Offline from "./pages/offline.jsx";
 import Navbar from "./components/Navbar.jsx";
@@ -43,6 +45,13 @@ const AppWrapper = () => {
     <>
       {loading && <Loader />}
       <Navbar />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        pauseOnHover
+        closeOnClick
+        theme="light"
+      />
       <Routes>
         {/*  Public Routes */}
         <Route path="/" element={<Home />} />

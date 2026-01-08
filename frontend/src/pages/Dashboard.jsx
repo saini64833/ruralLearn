@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -11,32 +10,42 @@ import {
   Edit3,
   UserCircle2,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import { Eye, EyeOff } from "lucide-react";
 
 const Dashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [userData, setUserData] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
   const [progress, setProgress] = useState(null);
   const [childrenProgress, setChildrenProgress] = useState([]);
-
+  const [loading, setLoading] = useState(false);
+  const [isProfileDetailOpen, setIsProfileDetailOpen] = useState(false);
+  const [userNewDetail, setUserNewDetail] = useState("");
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axiosInstance.get("/users/me");
         const userInfo = res.data?.data;
         setUserData(userInfo);
-
         if (userInfo.role === "Teacher") {
-          const lessonsRes = await axiosInstance.get("/lessons/get-all-lessons");
+          const lessonsRes = await axiosInstance.get(
+            "/lessons/get-all-lessons"
+          );
           const teacherLessons = lessonsRes.data?.data.filter(
             (l) => l.createdBy._id === userInfo._id
           );
           setLessons(teacherLessons || []);
 
-          const quizzesRes = await axiosInstance.get("/quizzes/get-all-quizzes");
+          const quizzesRes = await axiosInstance.get(
+            "/quizzes/get-all-quizzes"
+          );
           const teacherQuizzes = quizzesRes.data?.data.filter(
             (q) => q.createdBy === userInfo._id
           );
@@ -45,7 +54,9 @@ const Dashboard = () => {
           const progressRes = await axiosInstance.get("/progress/my-progress");
           setProgress(progressRes.data?.data);
         } else if (userInfo.role === "Parent") {
-          const childrenRes = await axiosInstance.get("/progress/children-progress");
+          const childrenRes = await axiosInstance.get(
+            "/progress/children-progress"
+          );
           setChildrenProgress(childrenRes.data?.data || []);
         }
       } catch (err) {
@@ -58,8 +69,10 @@ const Dashboard = () => {
 
   const handleUploadLesson = () => navigate("/lessons/upload-lesson");
   const handleUploadQuiz = () => navigate("/quizzes/upload-quize");
-  const handleUpdateLesson = (lessonId) => navigate(`/lessons/update/${lessonId}`);
-  const handleUpdateQuiz = (quizId) => navigate(`/quizzes/update-quize/${quizId}`);
+  const handleUpdateLesson = (lessonId) =>
+    navigate(`/lessons/update/${lessonId}`);
+  const handleUpdateQuiz = (quizId) =>
+    navigate(`/quizzes/update-quize/${quizId}`);
 
   const handleDeleteLesson = async (lessonId) => {
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
@@ -84,7 +97,38 @@ const Dashboard = () => {
       alert("Failed to delete quiz.");
     }
   };
+  const handleChangePassword = async () => {
+    if (!oldPassword || !newPassword) {
+      toast.error("Both fields are required");
+      return;
+    }
 
+    try {
+      setLoading(true);
+
+      await axiosInstance.post("/users/change-password", {
+        oldPassword,
+        newPassword,
+      });
+
+      setOldPassword("");
+      setNewPassword("");
+      setIsPasswordOpen(false);
+      toast.success("Password changed successfully");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Password change failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleUpdateprofile = async () => {
+    try {
+      await axiosInstance.put("/users/account-detail-update", {
+        userNewDetail,
+      });
+      setUserData("");
+    } catch (error) {}
+  };
   if (!userData) {
     return (
       <div className="flex justify-center items-center min-h-screen text-lg text-indigo-600 font-medium">
@@ -110,26 +154,165 @@ const Dashboard = () => {
             />
             <UserCircle2 className="absolute -bottom-1 -right-1 text-indigo-500 bg-white rounded-full p-1 w-7 h-7" />
           </div>
+
           <div>
             <h2 className="text-3xl font-bold text-gray-800">
               {userData.fullName}
             </h2>
             <p className="text-gray-600">@{userData.userName}</p>
             <p className="text-gray-500">{userData.email}</p>
-            <span
-              className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm ${
-                userData.role === "Teacher"
-                  ? "bg-blue-100 text-blue-700"
-                  : userData.role === "Student"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-purple-100 text-purple-700"
-              }`}
-            >
-              {userData.role.toUpperCase()}
-            </span>
+            <div className="flex gap-4">
+              <span
+                className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm ${
+                  userData.role === "Teacher"
+                    ? "bg-blue-100 text-blue-700"
+                    : userData.role === "Student"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-purple-100 text-purple-700"
+                }`}
+              >
+                {userData.role.toUpperCase()}
+              </span>
+              {/* CHANGE PASSWORD */}
+              <button
+                onClick={() => setIsPasswordOpen(true)}
+                className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm ${
+                  userData.role === "Teacher"
+                    ? "bg-blue-100 text-blue-700"
+                    : userData.role === "Student"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-purple-100 text-purple-700"
+                }`}
+              >
+                Change Password
+              </button>
+              <button
+                onClick={() => setIsProfileDetailOpen(true)}
+                className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm ${
+                  userData.role === "Teacher"
+                    ? "bg-blue-100 text-blue-700"
+                    : userData.role === "Student"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-purple-100 text-purple-700"
+                }`}
+              >
+                Update Profile
+              </button>
+            </div>
           </div>
         </div>
+        {isPasswordOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* BACKDROP */}
+            <div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setIsPasswordOpen(false)}
+            />
 
+            {/* MODAL */}
+            <div
+              className="relative z-50 w-full max-w-sm bg-white rounded-2xl shadow-xl p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-semibold mb-4 text-indigo-700">
+                Change Password
+              </h3>
+
+              <div className="space-y-4">
+                <div className="relative">
+                  <input
+                    type={showOldPassword ? "text" : "password"}
+                    placeholder="Old Password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPassword(!showOldPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600"
+                  >
+                    {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600"
+                  >
+                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => setIsPasswordOpen(false)}
+                    className="px-4 py-2 rounded-lg border hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={loading}
+                    className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {loading ? "Updating..." : "Update"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {isProfileDetailOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* BACKDROP */}
+            <div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setIsProfileDetailOpen(false)}
+            />
+
+            {/* MODAL */}
+            <div
+              className="relative z-50 w-full max-w-sm bg-white rounded-2xl shadow-xl p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-semibold mb-4 text-indigo-700">
+                Update Profile
+              </h3>
+
+              <div className="space-y-4">
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => setIsPasswordOpen(false)}
+                    className="px-4 py-2 rounded-lg border hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={loading}
+                    className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {loading ? "Updating..." : "Update"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* TEACHER DASHBOARD */}
         {userData.role === "Teacher" && (
           <>
@@ -163,8 +346,12 @@ const Dashboard = () => {
                   >
                     <div className="flex justify-between items-center mb-3">
                       <div>
-                        <h4 className="font-bold text-gray-800">{lesson.title}</h4>
-                        <p className="text-sm text-gray-600">{lesson.subject}</p>
+                        <h4 className="font-bold text-gray-800">
+                          {lesson.title}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {lesson.subject}
+                        </p>
                       </div>
                       <div className="flex gap-2">
                         <button

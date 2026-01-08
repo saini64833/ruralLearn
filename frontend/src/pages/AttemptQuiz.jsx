@@ -228,7 +228,7 @@ const AttemptQuiz = () => {
         answers: formattedAnswers,
       });
 
-      // ⬇️ IMPORTANT: backend must return resultId
+      // IMPORTANT: backend must return resultId
       const resultId = data.data.resultId;
 
       // navigate to result page automatically
