@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [childrenProgress, setChildrenProgress] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isProfileDetailOpen, setIsProfileDetailOpen] = useState(false);
-  const [userNewDetail, setUserNewDetail] = useState("");
+  const [userNewDetail, setUserNewDetail] = useState({});
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -85,7 +85,6 @@ const Dashboard = () => {
       alert("Failed to delete lesson.");
     }
   };
-
   const handleDeleteQuiz = async (quizId) => {
     if (!window.confirm("Are you sure you want to delete this quiz?")) return;
     try {
@@ -123,12 +122,35 @@ const Dashboard = () => {
   };
   const handleUpdateprofile = async () => {
     try {
-      await axiosInstance.put("/users/account-detail-update", {
-        userNewDetail,
-      });
-      setUserData("");
-    } catch (error) {}
+      const payload =
+        userData.role === "Student"
+          ? {
+              email: userNewDetail.email,
+              fullName: userNewDetail.fullName,
+              grade: userNewDetail.grade,
+              school: userNewDetail.school,
+            }
+          : {
+              email: userNewDetail.email,
+              fullName: userNewDetail.fullName,
+            };
+
+      await axiosInstance.put("/users/account-detail-update", payload);
+
+      toast.success("Profile updated successfully");
+      setIsProfileDetailOpen(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Update failed");
+    }
   };
+
+  const handleAvatarChange=async()=>{
+    try {
+      
+    } catch (error) {
+      toast.error()
+    }
+  }
   if (!userData) {
     return (
       <div className="flex justify-center items-center min-h-screen text-lg text-indigo-600 font-medium">
@@ -146,13 +168,33 @@ const Dashboard = () => {
       <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-3xl p-8 border border-indigo-100">
         {/* USER INFO */}
         <div className="flex flex-col sm:flex-row items-center gap-6 mb-10">
-          <div className="relative">
+          <div className="relative group w-28 h-28">
+            {/* Avatar Image */}
             <img
               src={userData.avatar || "https://via.placeholder.com/100"}
               alt="avatar"
-              className="w-28 h-28 rounded-full border-4 border-indigo-500 shadow"
+              className="w-28 h-28 rounded-full border-4 border-indigo-500 shadow object-cover"
             />
-            <UserCircle2 className="absolute -bottom-1 -right-1 text-indigo-500 bg-white rounded-full p-1 w-7 h-7" />
+
+            {/* Hover Overlay */}
+            <label
+              htmlFor="avatarUpload"
+              className="absolute inset-0 bg-black/40 rounded-full
+               flex items-center justify-center
+               opacity-0 group-hover:opacity-100
+               transition-opacity cursor-pointer"
+            >
+              <UserCircle2 className="text-white w-8 h-8" />
+            </label>
+
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              id="avatarUpload"
+              accept="image/*"
+              className="hidden"
+              
+            />
           </div>
 
           <div>
@@ -176,7 +218,7 @@ const Dashboard = () => {
               {/* CHANGE PASSWORD */}
               <button
                 onClick={() => setIsPasswordOpen(true)}
-                className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm ${
+                className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm  hover:cursor-pointer ${
                   userData.role === "Teacher"
                     ? "bg-blue-100 text-blue-700"
                     : userData.role === "Student"
@@ -188,7 +230,7 @@ const Dashboard = () => {
               </button>
               <button
                 onClick={() => setIsProfileDetailOpen(true)}
-                className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm ${
+                className={`mt-3 inline-block px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm hover:cursor-pointer ${
                   userData.role === "Teacher"
                     ? "bg-blue-100 text-blue-700"
                     : userData.role === "Student"
@@ -293,16 +335,76 @@ const Dashboard = () => {
               </h3>
 
               <div className="space-y-4">
+                {/* EMAIL (always) */}
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={userNewDetail.email}
+                  onChange={(e) =>
+                    setUserNewDetail({
+                      ...userNewDetail,
+                      email: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+
+                {/* FULL NAME (always) */}
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={userNewDetail.fullName}
+                  onChange={(e) =>
+                    setUserNewDetail({
+                      ...userNewDetail,
+                      fullName: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+
+                {/* STUDENT-ONLY FIELDS */}
+                {userData?.role === "Student" && (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Grade"
+                      value={userNewDetail.grade}
+                      onChange={(e) =>
+                        setUserNewDetail({
+                          ...userNewDetail,
+                          grade: e.target.value,
+                        })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="School"
+                      value={userNewDetail.school}
+                      onChange={(e) =>
+                        setUserNewDetail({
+                          ...userNewDetail,
+                          school: e.target.value,
+                        })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                    />
+                  </>
+                )}
+
+                {/* ACTIONS */}
                 <div className="flex justify-end gap-3 pt-2">
                   <button
-                    onClick={() => setIsPasswordOpen(false)}
+                    onClick={() => setIsProfileDetailOpen(false)}
                     className="px-4 py-2 rounded-lg border hover:bg-gray-100"
                   >
                     Cancel
                   </button>
 
                   <button
-                    onClick={handleChangePassword}
+                    onClick={handleUpdateprofile}
                     disabled={loading}
                     className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                   >
@@ -313,6 +415,7 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
         {/* TEACHER DASHBOARD */}
         {userData.role === "Teacher" && (
           <>

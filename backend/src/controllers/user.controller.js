@@ -219,31 +219,46 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { email, fullName, grade, school } = req.body;
-  if (!fullName || !email || !grade || !school) {
-    throw new ApiError(401, "fullName, eamil,school and garde are required ");
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "Current user not found");
   }
 
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $set: {
-        email,
-        fullName,
-        grade,
-        school,
-      },
-    },
-    {
-      new: true,
+  const { email, fullName, grade, school } = req.body;
+
+  if (!email || !fullName) {
+    throw new ApiError(400, "Email and Full Name are required");
+  }
+
+  const updateData = {
+    email,
+    fullName
+  };
+
+  if (user.role === "Student") {
+    if (!grade || !school) {
+      throw new ApiError(400, "Grade and School are required for students");
     }
+    updateData.grade = grade;
+    updateData.school = school;
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: updateData },
+    { new: true }
   );
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, user, "Account details are successfully updated")
-    );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      updatedUser,
+      "Account details successfully updated"
+    )
+  );
 });
+
 
 const deleteAndUpdateAvatar = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -287,7 +302,7 @@ const deleteAndUpdateAvatar = asyncHandler(async (req, res) => {
   );
 });
 
-export {
+export {  
   registerUser,
   loginUser,
   logOutUser,
