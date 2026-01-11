@@ -1,6 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const ResultQuiz = () => {
   const { id } = useParams();
@@ -9,14 +31,14 @@ const ResultQuiz = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch quiz result
   useEffect(() => {
     const fetchResult = async () => {
       try {
         const res = await axiosInstance.get(`/quizzes/result/${id}`);
-        console.log(res.data.data);
         setResult(res.data.data);
       } catch (err) {
-        console.log("Failed to fetch result:", err);
+        console.error("Failed to fetch result:", err);
         alert("Failed to load result");
         navigate("/quizzes/get-all-quizzes");
       } finally {
@@ -45,6 +67,45 @@ const ResultQuiz = () => {
 
   const { quizId, answers, totalScore, totalPercentage } = result;
 
+  // Chart Data
+  const correctCount = answers.filter(a => a.isCorrect).length;
+  const wrongCount = answers.filter(a => a.selectedOptionIndex !== null && !a.isCorrect).length;
+  const notAttemptedCount = answers.filter(a => a.selectedOptionIndex === null).length;
+
+  const barData = {
+    labels: ["Correct", "Incorrect", "Not Attempted"],
+    datasets: [
+      {
+        label: "Answers",
+        data: [correctCount, wrongCount, notAttemptedCount],
+        backgroundColor: ["#4ade80", "#f87171", "#facc15"],
+        borderRadius: 5,
+      },
+    ],
+  };
+
+  const pieData = {
+    labels: ["Score", "Remaining"],
+    datasets: [
+      {
+        data: [totalPercentage, 100 - totalPercentage],
+        backgroundColor: ["#3b82f6", "#d1d5db"],
+        borderRadius: 5,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: "top" },
+      title: { display: true, text: "Quiz Summary" },
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
@@ -56,6 +117,19 @@ const ResultQuiz = () => {
         <p className="text-gray-600">
           Percentage: {totalPercentage.toFixed(2)}%
         </p>
+      </div>
+
+      {/* Charts */}
+      <div className="max-w-4xl mx-auto mb-6 grid md:grid-cols-2 gap-6">
+        <div className="bg-white p-4 rounded-xl shadow">
+          <h3 className="font-semibold mb-2 text-gray-700">Correct vs Wrong</h3>
+          <Bar data={barData} options={chartOptions} />
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow">
+          <h3 className="font-semibold mb-2 text-gray-700">Score Percentage</h3>
+          <Pie data={pieData} options={chartOptions} />
+        </div>
       </div>
 
       {/* Questions */}
@@ -75,12 +149,10 @@ const ResultQuiz = () => {
                 <div className="flex items-center gap-1">
                   {isCorrect ? (
                     <span className="text-green-600 font-medium">Correct</span>
+                  ) : selected != null ? (
+                    <span className="text-red-600 font-medium">Incorrect</span>
                   ) : (
-                    selected != null ? (
-                      <span className="text-red-600 font-medium">Incorrect</span>
-                    ) : (
-                      <span className="text-yellow-600 font-medium">Not Attempted</span>
-                    )
+                    <span className="text-yellow-600 font-medium">Not Attempted</span>
                   )}
                 </div>
               </div>
@@ -103,8 +175,6 @@ const ResultQuiz = () => {
                       }`}
                     >
                       {opt}
-
-                      {/* tags */}
                       {isSelected && !isCorrectOpt && " (Your choice)"}
                       {isCorrectOpt && " (Correct)"}
                     </li>
