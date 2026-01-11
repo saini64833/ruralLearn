@@ -35,8 +35,8 @@ const registerUser = asyncHandler(async (req, res) => {
   console.log("fullName:", fullName);
   console.log("userName:", userName);
   console.log("role:", role);
-  console.log("grade:",grade);
-  console.log("school:",school)
+  console.log("grade:", grade);
+  console.log("school:", school);
   if (
     [fullName, userName, email, password, role].some(
       (field) => field?.trim() === ""
@@ -67,7 +67,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   if (!avatar.secure_url) {
     throw new ApiError(401, "avatar is required!!");
-  } 
+  }
   const user = await User.create({
     password,
     fullName,
@@ -233,7 +233,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
   const updateData = {
     email,
-    fullName
+    fullName,
   };
 
   if (user.role === "Student") {
@@ -250,59 +250,60 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      updatedUser,
-      "Account details successfully updated"
-    )
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedUser, "Account details successfully updated")
+    );
 });
 
+const extractPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  const match = url.match(/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/);
+  return match ? match[1] : null;
+};
 
 const deleteAndUpdateAvatar = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) {
-    throw new ApiError(400, "User does not exist");
-  }
-  if (!user.avatar) {
-    throw new ApiError(400, "User does not have an avatar to delete");
+    throw new ApiError(404, "User does not exist");
   }
 
-  const extractPublicIdFromUrl = (url) => {
-    const match = url.match(/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/);
-    return match ? match[1] : null;
-  };
-
-  const publicId = extractPublicIdFromUrl(user.avatar);
-  if (!publicId) {
-    throw new ApiError(400, "Invalid avatar URL, cannot extract publicId");
+  // Delete old avatar if exists
+  if (user.avatar) {
+    const publicId = extractPublicIdFromUrl(user.avatar);
+    if (publicId) {
+      await deleteFromCloudinary(publicId);
+    }
   }
 
-  await deleteFromCloudinary(publicId);
-
-  if (!req.file || !req.file.path) {
+  // Validate new file
+  if (!req.file?.path) {
     throw new ApiError(400, "New avatar file is required");
   }
 
-  const avatar = await uploadOnCloudinary(req.file.path);
-  if (!avatar?.url) {
+  // Upload new avatar
+  const uploadedAvatar = await uploadOnCloudinary(req.file.path);
+  if (!uploadedAvatar?.url) {
     throw new ApiError(500, "Failed to upload new avatar");
   }
 
-  user.avatar = avatar.url;
+  // Update user
+  user.avatar = uploadedAvatar.url;
   await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      user,
-      "User avatar deleted and updated successfully"
-    )
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { avatar: uploadedAvatar.url },
+        "Avatar updated successfully"
+      )
+    );
 });
 
-export {  
+export {
   registerUser,
   loginUser,
   logOutUser,

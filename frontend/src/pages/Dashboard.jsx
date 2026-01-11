@@ -9,12 +9,15 @@ import {
   Trash2,
   Edit3,
   UserCircle2,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Eye, EyeOff } from "lucide-react";
+import { use } from "react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
@@ -28,6 +31,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isProfileDetailOpen, setIsProfileDetailOpen] = useState(false);
   const [userNewDetail, setUserNewDetail] = useState({});
+  const [newAvatar, setNewAvatar] = useState(null);
+  const [uploading, setUploading] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -51,13 +56,13 @@ const Dashboard = () => {
           );
           setQuizzes(teacherQuizzes || []);
         } else if (userInfo.role === "Student") {
-          const progressRes = await axiosInstance.get("/progress/my-progress");
-          setProgress(progressRes.data?.data);
+          // const progressRes = await axiosInstance.get("/progress/my-progress");
+          // setProgress(progressRes.data?.data);
         } else if (userInfo.role === "Parent") {
-          const childrenRes = await axiosInstance.get(
-            "/progress/children-progress"
-          );
-          setChildrenProgress(childrenRes.data?.data || []);
+          // const childrenRes = await axiosInstance.get(
+          //   "/progress/children-progress"
+          // );
+          // setChildrenProgress(childrenRes.data?.data || []);
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -144,13 +149,31 @@ const Dashboard = () => {
     }
   };
 
-  const handleAvatarChange=async()=>{
-    try {
-      
-    } catch (error) {
-      toast.error()
+  const handleChangeAvatar = async (file) => {
+    if (!file) {
+      toast.error("No file selected");
+      return;
     }
-  }
+
+    setNewAvatar(file);
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      await axiosInstance.put("/users/update-avatar", formData);
+
+      const res = await axiosInstance.get("/users/me");
+      setUserData(res.data?.data);
+
+      toast.success("Avatar updated!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Upload failed");
+    } finally {
+      setNewAvatar(null);
+    }
+  };
+
   if (!userData) {
     return (
       <div className="flex justify-center items-center min-h-screen text-lg text-indigo-600 font-medium">
@@ -171,18 +194,30 @@ const Dashboard = () => {
           <div className="relative group w-28 h-28">
             {/* Avatar Image */}
             <img
-              src={userData.avatar || "https://via.placeholder.com/100"}
+              src={
+                newAvatar
+                  ? URL.createObjectURL(newAvatar) // instant preview
+                  : userData?.avatar
+                  ? `${userData.avatar}?t=${Date.now()}` 
+                  : "https://via.placeholder.com/100"
+              }
               alt="avatar"
-              className="w-28 h-28 rounded-full border-4 border-indigo-500 shadow object-cover"
+              className={`w-28 h-28 rounded-full border-4 border-indigo-500 shadow object-cover ${
+                uploading ? "opacity-50" : ""
+              }`}
             />
+
+            {/* Spinner Overlay */}
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-white animate-spin" />
+              </div>
+            )}
 
             {/* Hover Overlay */}
             <label
               htmlFor="avatarUpload"
-              className="absolute inset-0 bg-black/40 rounded-full
-               flex items-center justify-center
-               opacity-0 group-hover:opacity-100
-               transition-opacity cursor-pointer"
+              className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             >
               <UserCircle2 className="text-white w-8 h-8" />
             </label>
@@ -193,7 +228,31 @@ const Dashboard = () => {
               id="avatarUpload"
               accept="image/*"
               className="hidden"
-              
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                setNewAvatar(file); // instant preview
+                setUploading(true); // start spinner
+
+                try {
+                  const formData = new FormData();
+                  formData.append("avatar", file);
+
+                  await axiosInstance.put("/users/update-avatar", formData);
+
+
+                  const res = await axiosInstance.get("/users/me");
+                  setUserData(res.data?.data);
+
+                  toast.success("Avatar updated!");
+                } catch (err) {
+                  toast.error(err.response?.data?.message || "Upload failed");
+                } finally {
+                  setUploading(false);
+                  setNewAvatar(null); 
+                }
+              }}
             />
           </div>
 
@@ -523,7 +582,7 @@ const Dashboard = () => {
         )}
 
         {/* STUDENT DASHBOARD */}
-        {userData.role === "Student" && progress && (
+        {/* {userData.role === "Student" && progress && (
           <motion.div
             className="bg-indigo-50 p-6 rounded-2xl shadow-sm mt-6"
             whileHover={{ scale: 1.01 }}
@@ -552,10 +611,10 @@ const Dashboard = () => {
               </div>
             </div>
           </motion.div>
-        )}
+        )} */}
 
         {/* PARENT DASHBOARD */}
-        {userData.role === "Parent" && (
+        {/* {userData.role === "Parent" && (
           <div className="mt-8">
             <h3 className="text-2xl font-semibold mb-4 text-purple-700">
               Children’s Progress
@@ -583,7 +642,7 @@ const Dashboard = () => {
               </p>
             )}
           </div>
-        )}
+        )} */}
       </div>
     </motion.div>
   );
