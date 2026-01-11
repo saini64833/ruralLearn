@@ -1,10 +1,13 @@
 export default function Offline() {
   return (
-    <div className="h-screen flex flex-col items-center justify-center text-center">
-      <h1 className="text-2xl font-bold mb-2">You are offline</h1>
-      <p className="text-gray-600">
-        Please check your internet connection.
-      </p>
+    <div className="flex items-center justify-center h-screen text-center">
+      <div>
+        <h1 className="text-3xl font-bold mb-4">You are offline</h1>
+        <p className="text-lg">
+          Some features may not be available. Please check your internet
+          connection.
+        </p>
+      </div>
     </div>
   );
 }

@@ -8,56 +8,41 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-
     VitePWA({
       registerType: "autoUpdate",
-
       includeAssets: [
         "favicon.ico",
         "robots.txt",
         "icons/icon-192.png",
         "icons/icon-512.png",
       ],
-
       manifest: {
         name: "Rural Learn",
         short_name: "RuralLearn",
-        description: "Learning platform with videos, PDFs, quizzes",
         start_url: "/",
         display: "standalone",
-        background_color: "#ffffff",
         theme_color: "#0d6efd",
+        background_color: "#ffffff",
         icons: [
-          {
-            src: "/icons/icon-192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/icons/icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
         ],
       },
-
       workbox: {
         cleanupOutdatedCaches: true,
-        navigateFallback: "/index.html",
-
+        navigateFallback: "/offline", // redirect to offline page if page fails
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.destination === "document",
+            urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkFirst",
-            options: {
-              cacheName: "pages-cache",
-            },
+            options: { cacheName: "pages-cache" },
           },
           {
             urlPattern: ({ url }) => url.origin.includes("onrender.com"),
-            handler: "NetworkFirst",
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-cache",
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
             },
           },
           {
@@ -65,10 +50,7 @@ export default defineConfig({
             handler: "CacheFirst",
             options: {
               cacheName: "images-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
         ],

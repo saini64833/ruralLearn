@@ -4,6 +4,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
+import OfflineBanner from "./components/OfflineBanner.jsx";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
@@ -44,6 +45,7 @@ const AppWrapper = () => {
     <>
       {loading && <Loader />}
       <Navbar />
+      <OfflineBanner />
       <ToastContainer
         position="top-right"
         autoClose={3000}
