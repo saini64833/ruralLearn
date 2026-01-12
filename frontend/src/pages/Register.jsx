@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
-
+import {toast} from "react-toastify"
 const Register = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -15,7 +15,7 @@ const Register = () => {
   });
   const [avatar, setAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,7 +28,6 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
     const formData = new FormData();
     for (const key in form) formData.append(key, form[key]);
@@ -38,10 +37,10 @@ const Register = () => {
       const res = await axios.post("/users/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setMessage("✅ Registration successful! Redirecting...");
-      setTimeout(() => navigate("/login"), 2000);
+      toast.success("Registration successful! Redirecting...")
+      setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
-      setMessage(err.response?.data?.message || "❌ Registration failed!");
+      toast.error(err.response?.data?.message || " Registration failed!")
     } finally {
       setLoading(false);
     }
@@ -174,17 +173,6 @@ const Register = () => {
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
-
-        {message && (
-          <p
-            className={`text-center mt-4 ${
-              message.startsWith("✅") ? "text-green-600" : "text-red-500"
-            }`}
-          >
-            {message}
-          </p>
-        )}
-
         <p className="text-center text-sm mt-4">
           Already have an account?{" "}
           <a href="/login" className="text-indigo-600 hover:underline">

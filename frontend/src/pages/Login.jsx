@@ -1,22 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; 
-
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); 
+  const { login } = useAuth();
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     if (!emailOrUsername || !password) {
-      setError("Please enter both email/username and password");
+      toast.error("Please enter both email/username and password");
       setLoading(false);
       return;
     }
@@ -32,7 +30,6 @@ const Login = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) throw new Error("User info missing");
 
-
       switch (user.role) {
         case "Teacher":
           navigate("/lessons/get-all-lessons");
@@ -47,8 +44,10 @@ const Login = () => {
           navigate("/");
       }
     } catch (err) {
-      console.error(err);
-      setError("Invalid credentials or login failed");
+      toast.error(
+        err.response?.data?.message,
+        "Invalid credentials or login failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -60,8 +59,6 @@ const Login = () => {
         <h2 className="text-2xl font-bold text-center text-indigo-700 mb-6">
           🌾 Login to RuralLearn
         </h2>
-
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
