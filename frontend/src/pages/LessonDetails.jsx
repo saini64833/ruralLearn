@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { FaThumbsUp, FaComment } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance.js";
 import VideoPlayer from "../components/VideoPlayer.jsx";
+import { toast } from "react-toastify";
+import { FaGlobe, FaBook, FaThumbsUp, FaComment } from "react-icons/fa";
+import { FiTag } from "react-icons/fi";
+import { motion } from "framer-motion";
+import PdfSection from "../components/PdfSection.jsx";
 
 const LessonDetail = () => {
   const { id } = useParams();
@@ -16,8 +20,7 @@ const LessonDetail = () => {
       const res = await axiosInstance.get(`/lessons/${id}`);
       setLesson(res.data?.data);
     } catch (err) {
-      console.log(err);
-      alert("Error fetching lesson");
+      toast.error(err.response?.data?.message, "Error fetching lesson");
     } finally {
       setLoading(false);
     }
@@ -45,15 +48,32 @@ const LessonDetail = () => {
       console.error(err);
     }
   };
+  useEffect(() => {
+    if (isOpen && lesson?.comments) {
+      setComments(lesson.comments);
+    }
+  }, [isOpen, lesson]);
 
   const handleComment = async (e) => {
     e.stopPropagation();
     if (!commentText.trim()) return;
+
     try {
       const res = await axiosInstance.post(`/lessons/${lesson._id}/comment`, {
         text: commentText,
       });
-      setComments(res.data?.data || []);
+
+      const newComment = res.data.data;
+
+      // modal comments
+      setComments((prev) => [...prev, newComment]);
+
+      // lesson comments (source of truth)
+      setLesson((prev) => ({
+        ...prev,
+        comments: [...(prev.comments || []), newComment],
+      }));
+
       setCommentText("");
     } catch (err) {
       console.error("Comment failed:", err);
@@ -65,64 +85,85 @@ const LessonDetail = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-2">{lesson.title}</h1>
-      <p className="text-gray-700 mb-2">{lesson.description}</p>
-      <p className="mb-2">
-        <strong>Language:</strong> {lesson.language}
-      </p>
-      <p className="mb-2">
-        <strong>Subject:</strong> {lesson.subject}
-      </p>
-      <p className="mb-2">
-        <strong>Content:</strong> {lesson.content}
-      </p>
-      <p className="mb-4 ">
-        <strong>Tags:</strong> {lesson.tags?.join(", ")}
-      </p>
+      <h1 className="text-3xl font-extrabold text-gray-900 mb-1 leading-tight">
+        {lesson.title}
+      </h1>
 
-      <div className="flex gap-4 mb-4">
-        <button
-          className="flex items-center gap-1 bg-blue-500 text-white px-2 py-1 rounded"
-          onClick={handleLike}
-        >
-          <FaThumbsUp /> {lesson.likes?.length || 0}
-        </button>
-        <span className="flex items-center gap-1">
-          <FaComment /> {lesson.comments?.length || 0}
+      <p className="text-gray-600 mb-4 leading-relaxed">{lesson.description}</p>
+
+      <div className="flex flex-wrap gap-3 text-sm mb-4">
+        <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+          <FaGlobe className="text-sm" />
+          {lesson.language}
         </span>
+
+        <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+          <FaBook className="text-sm" />
+          {lesson.subject}
+        </span>
+
+        {lesson.tags?.map((tag, i) => (
+          <span
+            key={i}
+            className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs"
+          >
+            <FiTag />
+            {tag}
+          </span>
+        ))}
+      </div>
+      <p className="text-gray-700 leading-loose mb-8 text-[15px] md:text-base max-w-prose">
+        {lesson.content}
+      </p>
+
+      <div className="flex items-center gap-3 mb-6">
+        <motion.button
+          onClick={handleLike}
+          whileTap={{ scale: 0.9 }}
+          className="group flex items-center gap-2 px-4 py-2 rounded-full
+               bg-indigo-600 text-white text-sm font-medium
+               hover:bg-indigo-700 transition-all shadow-sm"
+        >
+          <motion.span
+            key={lesson.likes?.length}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="flex items-center gap-1"
+          >
+            <FaThumbsUp className="text-base" />
+            {lesson.likes?.length || 0}
+          </motion.span>
+        </motion.button>
+
+        <motion.button
+          onClick={() => setIsOpen(true)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 px-4 py-2 rounded-full
+               bg-gray-100 text-gray-700 text-sm font-medium
+               hover:bg-gray-200 transition-all"
+        >
+          <FaComment className="text-base" />
+          {lesson.comments?.length || 0}
+        </motion.button>
       </div>
 
-      {/* ✅ PDF Section */}
-      <div className="mb-4">
-        <h2 className="font-semibold mb-2">PDFs</h2>
-        <ul className="list-disc pl-5">
-          {lesson.pdfUrl?.map((pdf, i) => (
-            <li key={i}>
-              <a
-                href={pdf}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-500"
-              >
-                PDF {i + 1}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/*  PDF Section */}
+      <PdfSection pdfs={lesson.pdfUrl} />
 
       <div className="mb-4">
         <h2 className="font-semibold mb-2">Videos</h2>
         {lesson.videos?.length > 0 ? (
           <VideoPlayer
-            videoUrls={lesson.videos.map((v) => v.videoFile)} // ✅ extract URLs
+            videoUrls={lesson.videos.map((v) => v.videoFile)} //  extract URLs
           />
         ) : (
           <p className="text-gray-500">No videos available.</p>
         )}
       </div>
 
-      {/* ✅ Comments Section */}
+      {/*  Comments Section */}
       <div className="mb-4">
         <button
           onClick={() => setIsOpen(true)}

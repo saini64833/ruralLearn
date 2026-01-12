@@ -4,7 +4,6 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-
 const uploadLesson = asyncHandler(async (req, res) => {
   if (req.user.role !== "Teacher")
     throw new ApiError(401, "Only teachers can upload lessons");
