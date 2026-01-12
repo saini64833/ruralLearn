@@ -81,30 +81,6 @@ const LessonCard = ({ lesson, onClick }) => {
         <p className="text-gray-400 italic text-sm mb-3">No videos uploaded.</p>
       )}
 
-      {/* PDFs */}
-      {lesson.pdfUrl?.length > 0 && (
-        <div className="mb-3">
-          <h3 className="font-semibold mb-1 flex items-center gap-2 text-indigo-600">
-            <FaFilePdf /> Download PDFs
-          </h3>
-          <ul className="list-disc pl-5 space-y-1">
-            {lesson.pdfUrl.map((pdf, i) => (
-              <li key={i}>
-                <a
-                  href={pdf}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-blue-500 hover:underline"
-                >
-                  PDF {i + 1}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {/* Likes & Comments */}
       <div className="pt-3  mt-3" onClick={(e) => e.stopPropagation()}>
         <div
