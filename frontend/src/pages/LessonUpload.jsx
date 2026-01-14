@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance.js";
+import ReactQuill from "react-quill";
+
+import "react-quill/dist/quill.snow.css";
+import "katex/dist/katex.min.css";
 
 const LessonUpload = () => {
   const [form, setForm] = useState({
@@ -18,6 +22,10 @@ const LessonUpload = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleContentChange = (value) => {
+    setForm({ ...form, content: value });
   };
 
   const handlePdfChange = (e) => {
@@ -55,11 +63,12 @@ const LessonUpload = () => {
 
     try {
       setLoading(true);
-      const res = await axiosInstance.post("/lessons/upload-lesson", formData, {
+      await axiosInstance.post("/lessons/upload-lesson", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       alert("Lesson uploaded successfully!");
+
       setForm({
         title: "",
         description: "",
@@ -152,16 +161,23 @@ const LessonUpload = () => {
           />
         </div>
 
-        {/* Content */}
+        {/* 🔥 Content with Math Support */}
         <div className="flex flex-col">
-          <label className="font-medium mb-1">Content *</label>
-          <textarea
-            name="content"
-            rows="4"
-            className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+          <label className="font-medium mb-1">Content (Math Supported) *</label>
+
+          <ReactQuill
             value={form.content}
-            onChange={handleChange}
-            required
+            onChange={handleContentChange}
+            theme="snow"
+            modules={{
+              toolbar: [
+                ["bold", "italic", "underline"],
+                [{ script: "sub" }, { script: "super" }],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["formula"],   // ⭐ Math button
+                ["clean"]
+              ],
+            }}
           />
         </div>
 
@@ -175,13 +191,6 @@ const LessonUpload = () => {
             onChange={handlePdfChange}
             className="border p-2 rounded w-full"
           />
-          {pdfFiles.length > 0 && (
-            <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
-              {pdfFiles.map((file, i) => (
-                <li key={i}>{file.name}</li>
-              ))}
-            </ul>
-          )}
         </div>
 
         {/* Video Upload */}
@@ -196,7 +205,7 @@ const LessonUpload = () => {
           />
 
           {videoFiles.length > 0 && (
-            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {videoPreviews.map((src, i) => (
                 <video
                   key={i}
