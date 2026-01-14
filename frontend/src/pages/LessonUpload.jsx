@@ -1,10 +1,5 @@
 import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance.js";
-import ReactQuill from "react-quill";
-
-import "react-quill/dist/quill.snow.css";
-import "katex/dist/katex.min.css";
-
 const LessonUpload = () => {
   const [form, setForm] = useState({
     title: "",
@@ -14,61 +9,43 @@ const LessonUpload = () => {
     content: "",
     tags: "",
   });
-
   const [pdfFiles, setPdfFiles] = useState([]);
   const [videoFiles, setVideoFiles] = useState([]);
   const [videoPreviews, setVideoPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
-  const handleContentChange = (value) => {
-    setForm({ ...form, content: value });
-  };
-
   const handlePdfChange = (e) => {
     setPdfFiles([...e.target.files]);
   };
-
   const handleVideoChange = (e) => {
     const files = [...e.target.files];
     setVideoFiles(files);
-
     const previews = files.map((file) => URL.createObjectURL(file));
     setVideoPreviews(previews);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (pdfFiles.length === 0 || videoFiles.length === 0) {
       alert("Please upload at least one PDF and one video");
       return;
     }
-
     const formData = new FormData();
     for (let key in form) formData.append(key, form[key]);
-
     const tagsArray = form.tags
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-
     tagsArray.forEach((tag) => formData.append("tags", tag));
-
     pdfFiles.forEach((file) => formData.append("pdfUrl", file));
     videoFiles.forEach((file) => formData.append("videoFile", file));
-
     try {
       setLoading(true);
-      await axiosInstance.post("/lessons/upload-lesson", formData, {
+      const res = await axiosInstance.post("/lessons/upload-lesson", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       alert("Lesson uploaded successfully!");
-
       setForm({
         title: "",
         description: "",
@@ -87,21 +64,24 @@ const LessonUpload = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
+      {" "}
       <h1 className="text-3xl font-semibold mb-6 text-gray-800">
-        Upload Lesson
-      </h1>
-
+        {" "}
+        Upload Lesson{" "}
+      </h1>{" "}
       <form
         onSubmit={handleSubmit}
         className="bg-white shadow-md rounded-lg p-4 sm:p-6 space-y-5 border overflow-hidden"
       >
-        {/* Basic Details */}
+        {" "}
+        {/* Basic Details */}{" "}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {" "}
           <div className="flex flex-col">
-            <label className="font-medium mb-1">Title *</label>
+            {" "}
+            <label className="font-medium mb-1">Title *</label>{" "}
             <input
               type="text"
               name="title"
@@ -109,11 +89,11 @@ const LessonUpload = () => {
               value={form.title}
               onChange={handleChange}
               required
-            />
-          </div>
-
+            />{" "}
+          </div>{" "}
           <div className="flex flex-col">
-            <label className="font-medium mb-1">Language *</label>
+            {" "}
+            <label className="font-medium mb-1">Language *</label>{" "}
             <input
               type="text"
               name="language"
@@ -121,11 +101,11 @@ const LessonUpload = () => {
               value={form.language}
               onChange={handleChange}
               required
-            />
-          </div>
-
+            />{" "}
+          </div>{" "}
           <div className="flex flex-col">
-            <label className="font-medium mb-1">Subject *</label>
+            {" "}
+            <label className="font-medium mb-1">Subject *</label>{" "}
             <input
               type="text"
               name="subject"
@@ -133,24 +113,26 @@ const LessonUpload = () => {
               value={form.subject}
               onChange={handleChange}
               required
-            />
-          </div>
-
+            />{" "}
+          </div>{" "}
           <div className="flex flex-col">
-            <label className="font-medium mb-1">Tags (comma separated)</label>
+            {" "}
+            <label className="font-medium mb-1">
+              Tags (comma separated)
+            </label>{" "}
             <input
               type="text"
               name="tags"
               className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
               value={form.tags}
               onChange={handleChange}
-            />
-          </div>
-        </div>
-
-        {/* Description */}
+            />{" "}
+          </div>{" "}
+        </div>{" "}
+        {/* Description */}{" "}
         <div className="flex flex-col">
-          <label className="font-medium mb-1">Description *</label>
+          {" "}
+          <label className="font-medium mb-1">Description *</label>{" "}
           <input
             type="text"
             name="description"
@@ -158,54 +140,55 @@ const LessonUpload = () => {
             value={form.description}
             onChange={handleChange}
             required
-          />
-        </div>
-
-        {/* 🔥 Content with Math Support */}
+          />{" "}
+        </div>{" "}
+        {/* Content */}{" "}
         <div className="flex flex-col">
-          <label className="font-medium mb-1">Content (Math Supported) *</label>
-
-          <ReactQuill
+          {" "}
+          <label className="font-medium mb-1">Content *</label>{" "}
+          <textarea
+            name="content"
+            rows="4"
+            className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
             value={form.content}
-            onChange={handleContentChange}
-            theme="snow"
-            modules={{
-              toolbar: [
-                ["bold", "italic", "underline"],
-                [{ script: "sub" }, { script: "super" }],
-                [{ list: "ordered" }, { list: "bullet" }],
-                ["formula"],   // ⭐ Math button
-                ["clean"]
-              ],
-            }}
-          />
-        </div>
-
-        {/* PDF Upload */}
+            onChange={handleChange}
+            required
+          />{" "}
+        </div>{" "}
+        {/* PDF Upload */}{" "}
         <div>
-          <label className="font-semibold block mb-1">PDF Files *</label>
+          {" "}
+          <label className="font-semibold block mb-1">PDF Files *</label>{" "}
           <input
             type="file"
             accept=".pdf"
             multiple
             onChange={handlePdfChange}
             className="border p-2 rounded w-full"
-          />
-        </div>
-
-        {/* Video Upload */}
+          />{" "}
+          {pdfFiles.length > 0 && (
+            <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
+              {" "}
+              {pdfFiles.map((file, i) => (
+                <li key={i}>{file.name}</li>
+              ))}{" "}
+            </ul>
+          )}{" "}
+        </div>{" "}
+        {/* Video Upload */}{" "}
         <div>
-          <label className="font-semibold block mb-1">Video Files *</label>
+          {" "}
+          <label className="font-semibold block mb-1">Video Files *</label>{" "}
           <input
             type="file"
             accept="video/*"
             multiple
             onChange={handleVideoChange}
             className="border p-2 rounded w-full"
-          />
-
+          />{" "}
           {videoFiles.length > 0 && (
-            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
+              {" "}
               {videoPreviews.map((src, i) => (
                 <video
                   key={i}
@@ -213,21 +196,20 @@ const LessonUpload = () => {
                   className="w-full aspect-video object-cover rounded border"
                   controls
                 />
-              ))}
+              ))}{" "}
             </div>
-          )}
-        </div>
-
+          )}{" "}
+        </div>{" "}
         <button
           type="submit"
           disabled={loading}
           className="bg-blue-600 text-white py-2 rounded-md w-full font-medium disabled:opacity-50"
         >
-          {loading ? "Uploading..." : "Upload Lesson"}
-        </button>
-      </form>
+          {" "}
+          {loading ? "Uploading..." : "Upload Lesson"}{" "}
+        </button>{" "}
+      </form>{" "}
     </div>
   );
 };
-
 export default LessonUpload;

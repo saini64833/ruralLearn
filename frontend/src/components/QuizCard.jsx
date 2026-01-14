@@ -24,8 +24,14 @@ const QuizeCard = ({ quiz }) => {
     >
       {/* Header */}
       <div
-        onClick={() => navigate(`/quizzes/quize/${quiz._id}`)}
-        className="cursor-pointer"
+        onClick={() => {
+          if (user?.role === "Teacher") {
+            navigate(`/quizzes/quize/${quiz._id}`);
+          }
+        }}
+        className={`cursor-pointer ${
+          user?.role !== "Student" ? "opacity-50 cursor-not-allowed" : ""
+        }`}
       >
         <h2 className="text-lg font-bold text-indigo-700 truncate">
           {quiz?.title}

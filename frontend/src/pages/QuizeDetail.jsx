@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { FaEdit, FaPlay, FaCheckCircle } from "react-icons/fa"; // Import icons
+import { FaEdit, FaPlay, FaCheckCircle } from "react-icons/fa"; 
+import MathRenderer from "../components/MathRenderer";
+
 
 const QuizeDetail = () => {
   const { id } = useParams();
@@ -68,10 +70,12 @@ const QuizeDetail = () => {
               </span>
             </span>
             <span>
-              <strong className="text-gray-800">Duration:</strong> {quiz.duration} mins
+              <strong className="text-gray-800">Duration:</strong>{" "}
+              {quiz.duration} mins
             </span>
             <span>
-              <strong className="text-gray-800">Total Marks:</strong> {quiz.totalMarks}
+              <strong className="text-gray-800">Total Marks:</strong>{" "}
+              {quiz.totalMarks}
             </span>
             {quiz.tags?.length > 0 && (
               <span>
@@ -91,7 +95,9 @@ const QuizeDetail = () => {
 
         {/* Questions */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Questions</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Questions
+          </h2>
 
           {quiz.questions?.length > 0 ? (
             quiz.questions.map((q, index) => (
@@ -100,26 +106,35 @@ const QuizeDetail = () => {
                 className="mb-5 bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <p className="font-medium text-gray-900">
-                    {index + 1}. {q.questionText}
-                  </p>
-                  <span className="text-sm text-gray-600">Marks: {q.marks }</span>
+                  <div className="font-medium text-gray-900">
+                    <span className="mr-2">{index + 1}.</span>
+                    <MathRenderer math={q.questionText} />
+                  </div>
+
+                  <span className="text-sm text-gray-600">
+                    Marks: {q.marks}
+                  </span>
                 </div>
 
                 <ul className="space-y-1 text-gray-700">
                   {q.options?.map((opt, i) => (
-                    <li key={i} className="flex items-center gap-2 pl-2">
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 pl-2 bg-white border rounded p-2"
+                    >
                       {i === q.correctAnswerIndex && (
-                        <FaCheckCircle className="text-emerald-600" />
+                        <FaCheckCircle className="text-emerald-600 mt-1" />
                       )}
-                      {opt}
+                      <MathRenderer math={opt} />
                     </li>
                   ))}
                 </ul>
               </div>
             ))
           ) : (
-            <p className="text-gray-500 italic">No questions have been added to this quiz yet.</p>
+            <p className="text-gray-500 italic">
+              No questions have been added to this quiz yet.
+            </p>
           )}
         </div>
 
@@ -131,15 +146,6 @@ const QuizeDetail = () => {
               className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
             >
               <FaEdit /> Edit Quiz
-            </button>
-          )}
-
-          {user?.role === "Student" && (
-            <button
-              onClick={() => navigate(`/quizzes/attempt/${quiz._id}`)}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
-            >
-              <FaPlay /> Attempt Quiz
             </button>
           )}
         </div>

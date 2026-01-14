@@ -3,6 +3,8 @@ import axiosInstance from "../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import MathRenderer from "../components/MathRenderer";
+
 const QuizeUpload = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -94,7 +96,7 @@ const QuizeUpload = () => {
       toast.success("Quiz uploaded successfully!");
 
       setTimeout(() => {
-        navigate("/quizzes/get-all-quizzes"); 
+        navigate("/quizzes/get-all-quizzes");
       }, 1000);
 
       console.log("Response:", res.data);
@@ -221,15 +223,22 @@ const QuizeUpload = () => {
                 <label className="block text-gray-600 mb-1">
                   Enter the question:
                 </label>
-                <input
-                  type="text"
-                  placeholder="Type the question here..."
+                <textarea
+                  placeholder="Type question (LaTeX supported, e.g. \begin{pmatrix}1 & 2 \\ 3 & 4\end{pmatrix})"
                   value={q.questionText}
                   onChange={(e) =>
                     handleQuestionChange(qIndex, "questionText", e.target.value)
                   }
-                  className="border rounded-lg p-3 w-full mb-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  rows={3}
+                  className="border rounded-lg p-3 w-full mb-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
+
+                {/* LIVE PREVIEW */}
+                {q.questionText && (
+                  <div className="bg-gray-50 border rounded p-3 mb-3">
+                    <MathRenderer math={q.questionText} />
+                  </div>
+                )}
 
                 {/* Options with radio buttons for correct answer */}
                 <label className="block text-gray-600 mb-2">
@@ -250,15 +259,22 @@ const QuizeUpload = () => {
                       }
                       className="mr-2 accent-indigo-600"
                     />
-                    <input
-                      type="text"
-                      placeholder={`Option ${oIndex + 1} text`}
+                    <textarea
+                      placeholder={`Option ${oIndex + 1} (LaTeX supported)`}
                       value={opt}
                       onChange={(e) =>
                         handleOptionChange(qIndex, oIndex, e.target.value)
                       }
+                      rows={2}
                       className="border rounded-lg p-2 w-full focus:ring-2 focus:ring-indigo-500 outline-none"
                     />
+
+                    {/* Option Preview */}
+                    {opt && (
+                      <div className="ml-6 mt-1 bg-gray-50 border rounded p-2">
+                        <MathRenderer math={opt} />
+                      </div>
+                    )}
                   </div>
                 ))}
 
