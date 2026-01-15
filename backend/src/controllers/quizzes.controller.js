@@ -379,6 +379,10 @@ const resultView = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, result, "result viewed successfully!!"));
 });
 
+const progress=asyncHandler(async(req,res)=>{
+  const user=req.user._id;
+  
+})
 export {
   uploadQuize,
   updateQuize,

@@ -7,7 +7,7 @@ import { FaGlobe, FaBook, FaThumbsUp, FaComment } from "react-icons/fa";
 import { FiTag } from "react-icons/fi";
 import { motion } from "framer-motion";
 import PdfSection from "../components/PdfSection.jsx";
-
+import PageMotion from "../components/PageMotion.jsx";
 const LessonDetail = () => {
   const { id } = useParams();
   const [lesson, setLesson] = useState(null);
@@ -84,6 +84,7 @@ const LessonDetail = () => {
   if (!lesson) return <p>Lesson not found</p>;
 
   return (
+    <PageMotion>
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-3xl font-extrabold text-gray-900 mb-1 leading-tight">
         {lesson.title}
@@ -244,6 +245,7 @@ const LessonDetail = () => {
         </div>
       )}
     </div>
+    </PageMotion>
   );
 };
 

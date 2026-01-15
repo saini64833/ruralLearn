@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance.js";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import PageMotion from "../components/PageMotion";
 import {
   BookOpen,
   FileText,
@@ -183,7 +184,8 @@ const Dashboard = () => {
   }
 
   return (
-    <motion.div
+    <PageMotion>
+      <motion.div
       className="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-10 px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -645,6 +647,7 @@ const Dashboard = () => {
         )} */}
       </div>
     </motion.div>
+    </PageMotion>
   );
 };
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
+import PageMotion from "../components/PageMotion.jsx";
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
   const { user } = useAuth();
@@ -24,6 +25,7 @@ const Lessons = () => {
   }, []);
 
   return (
+    <PageMotion>
     <div className="container mx-auto p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -79,6 +81,7 @@ const Lessons = () => {
         </div>
       )}
     </div>
+    </PageMotion>
   );
 };
 

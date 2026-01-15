@@ -3,7 +3,8 @@ import axiosInstance from "../api/axiosInstance";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-
+import { FaFilePdf, FaVideo } from "react-icons/fa";
+import PageMotion from "../components/PageMotion";
 const UpdateLesson = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const UpdateLesson = () => {
           setNotAllowed(true);
         }
       } catch (error) {
-        toast.error("Failed to load lesson details");
+        toast.error(error,"Failed to load lesson details");
       }
     };
 
@@ -79,6 +80,7 @@ const UpdateLesson = () => {
 
 
 return (
+  <PageMotion>
   <div className="max-w-4xl mx-auto mt-10 p-4">
     <div className="bg-gray-50 border rounded-2xl shadow-sm p-8">
       <header className="text-center mb-8">
@@ -104,7 +106,7 @@ return (
         {/* PDFs Upload */}
         <div className="bg-white border rounded-lg p-5 shadow-sm">
           <label className="flex items-center gap-2 font-semibold text-gray-700 mb-3">
-            📄 PDF Files
+            <FaFilePdf className="text-red-500" />PDF Files
           </label>
           <input
             type="file"
@@ -131,7 +133,7 @@ return (
         {/* Videos Upload */}
         <div className="bg-white border rounded-lg p-5 shadow-sm">
           <label className="flex items-center gap-2 font-semibold text-gray-700 mb-3">
-            🎬 Video Files
+            <FaVideo className="text-red-500"/> Video Files
           </label>
           <input
             type="file"
@@ -145,7 +147,7 @@ return (
             <div className="mt-3 bg-gray-100 p-3 rounded-lg border grid grid-cols-2 sm:grid-cols-3 gap-3">
               {videoFiles.map((file, index) => (
                 <div key={index} className="text-sm text-gray-700">
-                  🎞 {file.name.slice(0, 20)}...
+                  <FaVideo/> {file.name.slice(0, 20)}...
                 </div>
               ))}
             </div>
@@ -167,6 +169,7 @@ return (
       </form>
     </div>
   </div>
+  </PageMotion>
 );
 
 };

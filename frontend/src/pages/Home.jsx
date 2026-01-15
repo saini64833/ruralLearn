@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-
+import PageMotion from "../components/PageMotion";
 const Home = () => {
   return (
+    <PageMotion>
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-100 text-gray-800">
       {/* 🌾 Hero Section */}
       <section className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto px-6 py-20">
@@ -174,6 +175,7 @@ const Home = () => {
         </div>
       </section>
     </div>
+    </PageMotion>
   );
 };
 
