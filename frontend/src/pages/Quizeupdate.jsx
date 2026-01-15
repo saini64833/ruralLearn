@@ -2,13 +2,8 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  FiPlus,
-  FiTrash2,
-  FiSave,
-  FiPlusCircle,
-  FiEdit,
-} from "react-icons/fi";
+import MathRenderer from "../components/MathRenderer";
+import { FiPlus, FiTrash2, FiSave, FiPlusCircle, FiEdit } from "react-icons/fi";
 import { GiBrain } from "react-icons/gi";
 const QuizeUpdate = () => {
   const { id } = useParams();
@@ -117,7 +112,8 @@ const QuizeUpdate = () => {
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-10 border border-gray-200">
         <h1 className="text-4xl font-bold text-gray-900 mb-8 flex justify-center gap-3 items-center">
-          <FiEdit/>Update Quiz
+          <FiEdit />
+          Update Quiz
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -161,7 +157,9 @@ const QuizeUpdate = () => {
           {/* Duration */}
           <div className="grid md:grid-cols-3 gap-8">
             <div>
-              <label className="text-gray-600 font-medium">Duration (mins)</label>
+              <label className="text-gray-600 font-medium">
+                Duration (mins)
+              </label>
               <input
                 name="duration"
                 value={quiz.duration}
@@ -199,7 +197,7 @@ const QuizeUpdate = () => {
           <div className="mt-10">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold text-gray-800">
-              <GiBrain/> Manage Questions
+                <GiBrain /> Manage Questions
               </h2>
 
               <button
@@ -232,14 +230,22 @@ const QuizeUpdate = () => {
                 </div>
 
                 {/* question text */}
-                <input
+                <textarea
                   value={q.questionText}
                   onChange={(e) =>
                     handleQuestionChange(qIndex, "questionText", e.target.value)
                   }
-                  placeholder="Enter question text..."
-                  className="w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Enter question text (LaTeX supported)"
+                  rows={3}
+                  className="w-full mb-2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
+
+                {/* ✅ Question Preview */}
+                {q.questionText && (
+                  <div className="bg-white border rounded p-3 mb-4">
+                    <MathRenderer text={q.questionText} />
+                  </div>
+                )}
 
                 {/* options */}
                 <div className="space-y-3">
@@ -258,15 +264,22 @@ const QuizeUpdate = () => {
                         }
                       />
 
-                      <input
-                        type="text"
+                      <textarea
                         value={opt}
-                        placeholder={`Option ${oIndex + 1}`}
+                        placeholder={`Option ${oIndex + 1} (LaTeX supported)`}
+                        rows={2}
                         onChange={(e) =>
                           handleOptionChange(qIndex, oIndex, e.target.value)
                         }
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       />
+
+                      {/* ✅ Option Preview */}
+                      {opt && (
+                        <div className="ml-8 mt-2 bg-white border rounded p-2">
+                          <MathRenderer text={opt} />
+                        </div>
+                      )}
                     </div>
                   ))}
 

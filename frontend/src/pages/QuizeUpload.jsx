@@ -223,8 +223,9 @@ const QuizeUpload = () => {
                 <label className="block text-gray-600 mb-1">
                   Enter the question:
                 </label>
+
                 <textarea
-                  placeholder="Type question (LaTeX supported, e.g. \begin{pmatrix}1 & 2 \\ 3 & 4\end{pmatrix})"
+                  placeholder="Type question (LaTeX supported, e.g. $\begin{pmatrix}1 & 2 \\ 3 & 4\end{pmatrix}$)"
                   value={q.questionText}
                   onChange={(e) =>
                     handleQuestionChange(qIndex, "questionText", e.target.value)
@@ -236,7 +237,7 @@ const QuizeUpload = () => {
                 {/* LIVE PREVIEW */}
                 {q.questionText && (
                   <div className="bg-gray-50 border rounded p-3 mb-3">
-                    <MathRenderer math={q.questionText} />
+                    <MathRenderer text={q.questionText} />
                   </div>
                 )}
 
@@ -272,7 +273,7 @@ const QuizeUpload = () => {
                     {/* Option Preview */}
                     {opt && (
                       <div className="ml-6 mt-1 bg-gray-50 border rounded p-2">
-                        <MathRenderer math={opt} />
+                        <MathRenderer text={opt} />
                       </div>
                     )}
                   </div>

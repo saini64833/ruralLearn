@@ -108,7 +108,7 @@ const QuizeDetail = () => {
                 <div className="flex justify-between items-center mb-2">
                   <div className="font-medium text-gray-900">
                     <span className="mr-2">{index + 1}.</span>
-                    <MathRenderer math={q.questionText} />
+                    <MathRenderer text={q.questionText} />
                   </div>
 
                   <span className="text-sm text-gray-600">
@@ -125,7 +125,7 @@ const QuizeDetail = () => {
                       {i === q.correctAnswerIndex && (
                         <FaCheckCircle className="text-emerald-600 mt-1" />
                       )}
-                      <MathRenderer math={opt} />
+                      <MathRenderer text={opt} />
                     </li>
                   ))}
                 </ul>
