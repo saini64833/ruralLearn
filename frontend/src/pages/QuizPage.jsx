@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { PlusCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext"; 
-
+import PageMotion from "../components/PageMotion.jsx";
 const QuizePage = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +30,7 @@ const QuizePage = () => {
   }, []);
 
   return (
+    <PageMotion>
     <div className="min-h-screen bg-white p-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -80,6 +81,7 @@ const QuizePage = () => {
         </motion.div>
       )}
     </div>
+    </PageMotion>
   );
 };
 

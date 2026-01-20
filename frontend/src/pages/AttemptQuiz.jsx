@@ -4,6 +4,7 @@ import axiosInstance from "../api/axiosInstance";
 import { toast } from "react-toastify";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import PageMotion from "../components/PageMotion";
 const AttemptQuiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -275,6 +276,7 @@ const AttemptQuiz = () => {
   const currentSelected = selectedAnswers[currentIndex] ?? null;
 
   return (
+    <PageMotion>
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-white text-gray-900">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b px-4 py-3 flex items-center justify-between">
@@ -613,6 +615,7 @@ const AttemptQuiz = () => {
         </div>
       )}
     </div>
+    </PageMotion>
   );
 };
 

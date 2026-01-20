@@ -4,7 +4,7 @@ import axiosInstance from "../api/axiosInstance.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { FaEdit, FaPlay, FaCheckCircle } from "react-icons/fa"; 
 import MathRenderer from "../components/MathRenderer";
-
+import PageMotion from "../components/PageMotion.jsx"
 
 const QuizeDetail = () => {
   const { id } = useParams();
@@ -42,6 +42,7 @@ const QuizeDetail = () => {
     );
 
   return (
+    <PageMotion>
     <div className="min-h-screen bg-gray-50 py-10 px-6">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl border border-gray-100 p-8">
         {/* Header */}
@@ -151,6 +152,7 @@ const QuizeDetail = () => {
         </div>
       </div>
     </div>
+    </PageMotion>
   );
 };
 

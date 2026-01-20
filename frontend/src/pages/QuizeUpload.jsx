@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import MathRenderer from "../components/MathRenderer";
-
+import pageMotion from "../components/PageMotion";
 const QuizeUpload = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -128,6 +128,7 @@ const QuizeUpload = () => {
   }
 
   return (
+    <pageMotion>
     <div className="min-h-screen bg-gray-100 py-10 flex justify-center">
       <div className="w-full max-w-4xl bg-white border border-gray-300 shadow-md rounded-2xl p-8">
         <h2 className="text-3xl font-bold text-center text-indigo-700 mb-8 border-b pb-3">
@@ -329,6 +330,7 @@ const QuizeUpload = () => {
         </form>
       </div>
     </div>
+    </pageMotion>
   );
 };
 

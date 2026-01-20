@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance.js";
+import PageMotion from "../components/PageMotion.jsx";
 const LessonUpload = () => {
   const [form, setForm] = useState({
     title: "",
@@ -65,7 +66,7 @@ const LessonUpload = () => {
     }
   };
   return (
-    
+    <PageMotion>
     <div className="max-w-3xl mx-auto px-4 py-6">
       {" "}
       <h1 className="text-3xl font-semibold mb-6 text-gray-800">
@@ -211,6 +212,7 @@ const LessonUpload = () => {
         </button>{" "}
       </form>{" "}
     </div>
+    </PageMotion>
   );
 };
 export default LessonUpload;

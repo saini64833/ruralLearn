@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import MathRenderer from "../components/MathRenderer";
 import { FiPlus, FiTrash2, FiSave, FiPlusCircle, FiEdit } from "react-icons/fi";
 import { GiBrain } from "react-icons/gi";
+import PageMotion from "../components/PageMotion.jsx";
 const QuizeUpdate = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -109,6 +110,7 @@ const QuizeUpdate = () => {
   }
 
   return (
+    <PageMotion>
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-10 border border-gray-200">
         <h1 className="text-4xl font-bold text-gray-900 mb-8 flex justify-center gap-3 items-center">
@@ -274,7 +276,7 @@ const QuizeUpdate = () => {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       />
 
-                      {/* ✅ Option Preview */}
+                      {/*  Option Preview */}
                       {opt && (
                         <div className="ml-8 mt-2 bg-white border rounded p-2">
                           <MathRenderer text={opt} />
@@ -321,6 +323,7 @@ const QuizeUpdate = () => {
         </form>
       </div>
     </div>
+    </PageMotion>
   );
 };
 

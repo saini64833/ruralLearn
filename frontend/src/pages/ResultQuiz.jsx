@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
+import PageMotion from "../components/PageMotion";
 // Register Chart.js components
 ChartJS.register(
   CategoryScale,
@@ -107,6 +107,7 @@ const ResultQuiz = () => {
   };
 
   return (
+    <PageMotion>
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 mb-6">
@@ -206,6 +207,7 @@ const ResultQuiz = () => {
         </button>
       </div>
     </div>
+    </PageMotion>
   );
 };
 
