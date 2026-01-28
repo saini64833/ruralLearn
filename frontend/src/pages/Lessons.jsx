@@ -4,6 +4,7 @@ import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
 import PageMotion from "../components/PageMotion.jsx";
+import { getLessonsOnline, getLessonsOffline } from "../services/lessonService";
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
   const { user } = useAuth();
@@ -23,6 +24,16 @@ const Lessons = () => {
     };
     fetchLessons();
   }, []);
+  
+useEffect(() => {
+
+  if (navigator.onLine) {
+    getLessonsOnline().then(setLessons);
+  } else {
+    getLessonsOffline().then(setLessons);
+  }
+
+}, []);
 
   return (
     <PageMotion>

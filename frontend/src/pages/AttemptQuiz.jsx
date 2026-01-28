@@ -48,13 +48,13 @@ const AttemptQuiz = () => {
         setQuiz(quizData);
 
         const savedAnswers = JSON.parse(
-          localStorage.getItem(STORAGE_KEYS.answers) || "{}"
+          localStorage.getItem(STORAGE_KEYS.answers) || "{}",
         );
         const savedMarked = JSON.parse(
-          localStorage.getItem(STORAGE_KEYS.marked) || "{}"
+          localStorage.getItem(STORAGE_KEYS.marked) || "{}",
         );
         const savedVisited = JSON.parse(
-          localStorage.getItem(STORAGE_KEYS.visited) || "{}"
+          localStorage.getItem(STORAGE_KEYS.visited) || "{}",
         );
 
         setSelectedAnswers(savedAnswers);
@@ -200,7 +200,7 @@ const AttemptQuiz = () => {
 
       const { data } = await axiosInstance.post(
         `/quizzes/response/${id}`,
-        payload
+        payload,
       );
 
       localStorage.removeItem(STORAGE_KEYS.start);
@@ -240,6 +240,10 @@ const AttemptQuiz = () => {
       localStorage.removeItem(STORAGE_KEYS.start);
     }
   };
+  if (!navigator.onLine) {
+    saveQuizOffline(resultData);
+    alert("Saved offline. Will sync later.");
+  }
 
   if (loading || !quiz) {
     return (
@@ -277,344 +281,348 @@ const AttemptQuiz = () => {
 
   return (
     <PageMotion>
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-white text-gray-900">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg md:text-2xl font-bold">{quiz.title}</h1>
-          <div className="text-sm text-gray-600">{quiz.description || ""}</div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Unanswered / marked summary (small) */}
-          <div className="hidden sm:flex flex-col items-end text-right">
-            <div className="text-sm text-gray-600">Time Left</div>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12">
-                <CircularProgressbar
-                  value={Math.max(0, progressPercentage)}
-                  text={formatTime(timeLeft)}
-                  styles={buildStyles({
-                    textSize: "2rem",
-                    textColor: timeLeft <= 60 ? "#dc2626" : "#374151",
-                    pathColor: timeLeft <= 60 ? "#dc2626" : "#4f46e5",
-                    trailColor: "#e5e7eb",
-                    strokeLinecap: "round",
-                  })}
-                />
-              </div>
-
-              <div className="text-sm text-gray-700">
-                <div>
-                  <span className="font-semibold">{unansweredCount}</span>{" "}
-                  unanswered
-                </div>
-                <div className="text-xs text-gray-500">
-                  Marked:{" "}
-                  {
-                    Object.keys(markedForReview).filter(
-                      (k) => markedForReview[k]
-                    ).length
-                  }
-                </div>
-              </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-white text-gray-900">
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b px-4 py-3 flex items-center justify-between">
+          <div>
+            <h1 className="text-lg md:text-2xl font-bold">{quiz.title}</h1>
+            <div className="text-sm text-gray-600">
+              {quiz.description || ""}
             </div>
           </div>
 
-          {/* small timer for mobile */}
-          <div className="sm:hidden">
-            <div
-              className={`px-3 py-2 rounded-md font-semibold ${
-                timeLeft <= 60
-                  ? "bg-red-50 text-red-600"
-                  : "bg-indigo-50 text-indigo-700"
-              }`}
-            >
-              {formatTime(timeLeft)}
-            </div>
-          </div>
-        </div>
-      </header>
+          <div className="flex items-center gap-4">
+            {/* Unanswered / marked summary (small) */}
+            <div className="hidden sm:flex flex-col items-end text-right">
+              <div className="text-sm text-gray-600">Time Left</div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12">
+                  <CircularProgressbar
+                    value={Math.max(0, progressPercentage)}
+                    text={formatTime(timeLeft)}
+                    styles={buildStyles({
+                      textSize: "2rem",
+                      textColor: timeLeft <= 60 ? "#dc2626" : "#374151",
+                      pathColor: timeLeft <= 60 ? "#dc2626" : "#4f46e5",
+                      trailColor: "#e5e7eb",
+                      strokeLinecap: "round",
+                    })}
+                  />
+                </div>
 
-      {/* Body: Left question, Right palette (responsive) */}
-      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Question column (main) */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-base md:text-lg font-medium">
-                  Q{currentIndex + 1}. {q.questionText}
-                </h2>
-                {q.explanation && (
-                  <div className="text-sm text-gray-500 mt-2">
-                    {q.explanation}
+                <div className="text-sm text-gray-700">
+                  <div>
+                    <span className="font-semibold">{unansweredCount}</span>{" "}
+                    unanswered
                   </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => toggleMark(currentIndex)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium border ${
-                    markedForReview[currentIndex]
-                      ? "bg-yellow-50 border-yellow-400"
-                      : "bg-gray-50 border-gray-200"
-                  }`}
-                >
-                  {markedForReview[currentIndex] ? "Marked" : "Mark for review"}
-                </button>
+                  <div className="text-xs text-gray-500">
+                    Marked:{" "}
+                    {
+                      Object.keys(markedForReview).filter(
+                        (k) => markedForReview[k],
+                      ).length
+                    }
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Options */}
-            <div className="mt-5 space-y-3">
-              {q.options.map((opt, i) => {
-                const checked = currentSelected === i;
-                return (
-                  <label
-                    key={i}
-                    className={`flex items-start gap-3 p-4 rounded-lg border transition ${
-                      checked
-                        ? "bg-indigo-50 border-indigo-600"
-                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+            {/* small timer for mobile */}
+            <div className="sm:hidden">
+              <div
+                className={`px-3 py-2 rounded-md font-semibold ${
+                  timeLeft <= 60
+                    ? "bg-red-50 text-red-600"
+                    : "bg-indigo-50 text-indigo-700"
+                }`}
+              >
+                {formatTime(timeLeft)}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Body: Left question, Right palette (responsive) */}
+        <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Question column (main) */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-base md:text-lg font-medium">
+                    Q{currentIndex + 1}. {q.questionText}
+                  </h2>
+                  {q.explanation && (
+                    <div className="text-sm text-gray-500 mt-2">
+                      {q.explanation}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleMark(currentIndex)}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium border ${
+                      markedForReview[currentIndex]
+                        ? "bg-yellow-50 border-yellow-400"
+                        : "bg-gray-50 border-gray-200"
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name={`question-${currentIndex}`} // important: one group per question
-                      className="mt-1 h-5 w-5 accent-indigo-600"
-                      checked={currentSelected === i}
-                      onChange={() => handleOptionSelect(currentIndex, i)}
-                    />
-
-                    <div className="text-sm leading-6">{opt}</div>
-                  </label>
-                );
-              })}
-            </div>
-
-            {/* Controls */}
-            <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={prev}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
-                >
-                  Previous
-                </button>
-
-                <button
-                  onClick={saveAndNext}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                >
-                  Save & Next
-                </button>
-
-                <button
-                  onClick={() => goTo(0)}
-                  className="px-4 py-2 bg-white border rounded-lg text-sm text-gray-700"
-                >
-                  First
-                </button>
+                    {markedForReview[currentIndex]
+                      ? "Marked"
+                      : "Mark for review"}
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-gray-600 hidden md:block">
-                  Visited: {Object.keys(visited).length}/{totalQuestions}
+              {/* Options */}
+              <div className="mt-5 space-y-3">
+                {q.options.map((opt, i) => {
+                  const checked = currentSelected === i;
+                  return (
+                    <label
+                      key={i}
+                      className={`flex items-start gap-3 p-4 rounded-lg border transition ${
+                        checked
+                          ? "bg-indigo-50 border-indigo-600"
+                          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`question-${currentIndex}`} // important: one group per question
+                        className="mt-1 h-5 w-5 accent-indigo-600"
+                        checked={currentSelected === i}
+                        onChange={() => handleOptionSelect(currentIndex, i)}
+                      />
+
+                      <div className="text-sm leading-6">{opt}</div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Controls */}
+              <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={prev}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    onClick={saveAndNext}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  >
+                    Save & Next
+                  </button>
+
+                  <button
+                    onClick={() => goTo(0)}
+                    className="px-4 py-2 bg-white border rounded-lg text-sm text-gray-700"
+                  >
+                    First
+                  </button>
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-gray-600 hidden md:block">
+                    Visited: {Object.keys(visited).length}/{totalQuestions}
+                  </div>
+
+                  <button
+                    onClick={() => setConfirmOpen(true)}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right column: palette and summary */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24 space-y-4">
+              {/* Palette card */}
+              <div className="bg-white rounded-2xl p-4 shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold">Question Palette</h3>
+                  <div className="text-xs text-gray-500">Tap to jump</div>
+                </div>
+
+                <div className="grid grid-cols-5 gap-2">
+                  {quiz.questions.map((_, idx) => {
+                    const isVisited = !!visited[idx];
+                    const isAnswered = (selectedAnswers[idx] || []).length > 0;
+                    const isMarked = !!markedForReview[idx];
+
+                    let bg = "bg-gray-100";
+                    let text = "text-gray-700";
+
+                    if (isMarked) {
+                      bg = "bg-yellow-300";
+                      text = "text-black";
+                    } else if (isAnswered) {
+                      bg = "bg-indigo-600";
+                      text = "text-white";
+                    } else if (isVisited) {
+                      bg = "bg-white border border-gray-200";
+                      text = "text-gray-700";
+                    } else {
+                      bg = "bg-gray-50 border border-gray-100 text-gray-500";
+                    }
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => goTo(idx)}
+                        className={`w-10 h-10 rounded-md flex items-center justify-center text-sm font-medium ${bg} ${text} hover:scale-105 transition`}
+                        title={`Question ${idx + 1}`}
+                      >
+                        {idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* legend */}
+                <div className="mt-4 text-xs text-gray-600 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 bg-indigo-600 inline-block rounded-sm" />
+                    <span>Answered</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 bg-gray-200 inline-block rounded-sm border" />
+                    <span>Visited</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 bg-yellow-300 inline-block rounded-sm" />
+                    <span>Marked for review</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 bg-gray-50 inline-block rounded-sm border" />
+                    <span>Not visited</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* summary card */}
+              <div className="bg-white rounded-2xl p-4 shadow text-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>Total</div>
+                  <div className="font-semibold">{totalQuestions}</div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>Answered</div>
+                  <div className="font-semibold">
+                    {totalQuestions - unansweredCount}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>Unanswered</div>
+                  <div className="font-semibold">{unansweredCount}</div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>Marked</div>
+                  <div className="font-semibold">
+                    {
+                      Object.keys(markedForReview).filter(
+                        (k) => markedForReview[k],
+                      ).length
+                    }
+                  </div>
+                </div>
+
+                <div className="pt-3">
+                  <button
+                    onClick={() => {
+                      // quick jump to first unanswered
+                      const firstUnanswered = quiz.questions.findIndex(
+                        (_, idx) =>
+                          !(
+                            selectedAnswers[idx] &&
+                            selectedAnswers[idx].length > 0
+                          ),
+                      );
+                      if (firstUnanswered === -1) goTo(0);
+                      else goTo(firstUnanswered);
+                    }}
+                    className="w-full py-2 bg-indigo-600 text-white rounded-lg"
+                  >
+                    Next Unanswered
+                  </button>
+                </div>
+              </div>
+
+              {/* small hints */}
+              <div className="bg-white rounded-2xl p-3 shadow text-xs text-gray-600">
+                <div>Tab switches: {tabSwitchCount}</div>
+                <div className="mt-2">
+                  Tip: Use palette to jump between questions fast.
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* Floating bottom-right submit (compact & responsive) */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <button
+            onClick={() => setConfirmOpen(true)}
+            className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm md:text-base shadow-lg flex items-center gap-2"
+            title="Submit Quiz"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Submit
+          </button>
+        </div>
+
+        {/* Confirm Modal */}
+        {confirmOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl p-6 w-11/12 max-w-md shadow-xl">
+              <h3 className="text-lg font-semibold mb-2">Submit Quiz?</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Once you submit, you won't be able to change your answers. Are
+                you sure?
+              </p>
+              <div className="flex gap-3 justify-end">
                 <button
-                  onClick={() => setConfirmOpen(true)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  onClick={() => setConfirmOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  className="px-4 py-2 rounded-lg bg-red-600 text-white"
                 >
                   Submit
                 </button>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Right column: palette and summary */}
-        <aside className="lg:col-span-1">
-          <div className="sticky top-24 space-y-4">
-            {/* Palette card */}
-            <div className="bg-white rounded-2xl p-4 shadow">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold">Question Palette</h3>
-                <div className="text-xs text-gray-500">Tap to jump</div>
-              </div>
-
-              <div className="grid grid-cols-5 gap-2">
-                {quiz.questions.map((_, idx) => {
-                  const isVisited = !!visited[idx];
-                  const isAnswered = (selectedAnswers[idx] || []).length > 0;
-                  const isMarked = !!markedForReview[idx];
-
-                  let bg = "bg-gray-100";
-                  let text = "text-gray-700";
-
-                  if (isMarked) {
-                    bg = "bg-yellow-300";
-                    text = "text-black";
-                  } else if (isAnswered) {
-                    bg = "bg-indigo-600";
-                    text = "text-white";
-                  } else if (isVisited) {
-                    bg = "bg-white border border-gray-200";
-                    text = "text-gray-700";
-                  } else {
-                    bg = "bg-gray-50 border border-gray-100 text-gray-500";
-                  }
-
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => goTo(idx)}
-                      className={`w-10 h-10 rounded-md flex items-center justify-center text-sm font-medium ${bg} ${text} hover:scale-105 transition`}
-                      title={`Question ${idx + 1}`}
-                    >
-                      {idx + 1}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* legend */}
-              <div className="mt-4 text-xs text-gray-600 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 bg-indigo-600 inline-block rounded-sm" />
-                  <span>Answered</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 bg-gray-200 inline-block rounded-sm border" />
-                  <span>Visited</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 bg-yellow-300 inline-block rounded-sm" />
-                  <span>Marked for review</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 bg-gray-50 inline-block rounded-sm border" />
-                  <span>Not visited</span>
-                </div>
-              </div>
-            </div>
-
-            {/* summary card */}
-            <div className="bg-white rounded-2xl p-4 shadow text-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <div>Total</div>
-                <div className="font-semibold">{totalQuestions}</div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>Answered</div>
-                <div className="font-semibold">
-                  {totalQuestions - unansweredCount}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>Unanswered</div>
-                <div className="font-semibold">{unansweredCount}</div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>Marked</div>
-                <div className="font-semibold">
-                  {
-                    Object.keys(markedForReview).filter(
-                      (k) => markedForReview[k]
-                    ).length
-                  }
-                </div>
-              </div>
-
-              <div className="pt-3">
-                <button
-                  onClick={() => {
-                    // quick jump to first unanswered
-                    const firstUnanswered = quiz.questions.findIndex(
-                      (_, idx) =>
-                        !(
-                          selectedAnswers[idx] &&
-                          selectedAnswers[idx].length > 0
-                        )
-                    );
-                    if (firstUnanswered === -1) goTo(0);
-                    else goTo(firstUnanswered);
-                  }}
-                  className="w-full py-2 bg-indigo-600 text-white rounded-lg"
-                >
-                  Next Unanswered
-                </button>
-              </div>
-            </div>
-
-            {/* small hints */}
-            <div className="bg-white rounded-2xl p-3 shadow text-xs text-gray-600">
-              <div>Tab switches: {tabSwitchCount}</div>
-              <div className="mt-2">
-                Tip: Use palette to jump between questions fast.
-              </div>
-            </div>
-          </div>
-        </aside>
+        )}
       </div>
-
-      {/* Floating bottom-right submit (compact & responsive) */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          onClick={() => setConfirmOpen(true)}
-          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm md:text-base shadow-lg flex items-center gap-2"
-          title="Submit Quiz"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-          Submit
-        </button>
-      </div>
-
-      {/* Confirm Modal */}
-      {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl p-6 w-11/12 max-w-md shadow-xl">
-            <h3 className="text-lg font-semibold mb-2">Submit Quiz?</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Once you submit, you won't be able to change your answers. Are you
-              sure?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setConfirmOpen(false)}
-                className="px-4 py-2 rounded-lg bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
     </PageMotion>
   );
 };

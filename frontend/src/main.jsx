@@ -13,11 +13,14 @@ registerSW({
     console.log("New version available");
   },
 });
+navigator.serviceWorker.ready.then((reg) => {
+  reg.sync.register("quiz-sync");
+});
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
       <App />
     </AuthProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
