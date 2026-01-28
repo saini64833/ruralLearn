@@ -1,8 +1,13 @@
-self.addEventListener("sync", (event) => {
-  if (event.tag === "quiz-sync") {
-    event.waitUntil(syncQuiz());
-  }
+self.addEventListener("fetch", (event) => {
+
+  event.respondWith(
+    caches.match(event.request).then((res) => {
+      return res || fetch(event.request);
+    })
+  );
+
 });
+
 async function syncQuiz() {
   const db = await openDB("rural-learn-db", 1);
   const all = await db.getAll("syncQueue");

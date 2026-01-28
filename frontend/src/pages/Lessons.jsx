@@ -4,7 +4,7 @@ import LessonCard from "../components/LessonCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import axiosInstance from "../api/axiosInstance.js";
 import PageMotion from "../components/PageMotion.jsx";
-import { getLessonsOnline, getLessonsOffline } from "../services/lessonService";
+import { getLessons } from "../services/lessonService";
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
   const { user } = useAuth();
@@ -13,6 +13,7 @@ const Lessons = () => {
   useEffect(() => {
     const fetchLessons = async () => {
       try {
+        getLessons().then(setLessons);
         const res = await axiosInstance.get("/lessons/get-all-lessons");
         setLessons(res.data?.data || []);
       } catch (err) {
@@ -25,15 +26,6 @@ const Lessons = () => {
     fetchLessons();
   }, []);
   
-useEffect(() => {
-
-  if (navigator.onLine) {
-    getLessonsOnline().then(setLessons);
-  } else {
-    getLessonsOffline().then(setLessons);
-  }
-
-}, []);
 
   return (
     <PageMotion>

@@ -1,20 +1,16 @@
 import axios from "../api/axiosInstance";
 import { dbPromise } from "../db/indexedDb";
 
-// ONLINE
-export const getLessonsOnline = async () => {
-  const res = await axios.get("/lessons");
-
+export const getLessons = async () => {
   const db = await dbPromise;
-  res.data.forEach((lesson) => {
-    db.put("lessons", lesson);
-  });
 
-  return res.data;
-};
+  if (navigator.onLine) {
+    const res = await axios.get("/lessons");
 
-// OFFLINE
-export const getLessonsOffline = async () => {
-  const db = await dbPromise;
-  return await db.getAll("lessons");
+    res.data.forEach((l) => db.put("lessons", l));
+
+    return res.data;
+  } else {
+    return await db.getAll("lessons");
+  }
 };
