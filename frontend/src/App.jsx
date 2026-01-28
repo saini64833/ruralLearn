@@ -8,10 +8,8 @@ import {
 
 import { motion } from "framer-motion";
 
-import OfflineBanner from "./components/OfflineBanner.jsx";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Offline from "./pages/offline.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -55,8 +53,6 @@ const AppWrapper = () => {
 
       {/* Global Loader */}
       {loading && <Loader type="route" />}
-
-      <OfflineBanner />
 
       <ToastContainer
         position="top-right"
@@ -182,9 +178,6 @@ const AppWrapper = () => {
                 </ProtectedRoute>
               }
             />
-
-            {/* Offline Page */}
-            <Route path="/offline" element={<Offline />} />
 
           </Routes>
         </Suspense>
