@@ -12,28 +12,42 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-   <script>
+<script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js")
-      .then(reg => {
-        console.log("SW Registered");
 
-        reg.onupdatefound = () => {
-          const newWorker = reg.installing;
-          newWorker.onstatechange = () => {
-            if (
-              newWorker.state === "installed" &&
-              navigator.serviceWorker.controller
-            ) {
-              if (confirm("New version available. Update now?")) {
-                window.location.reload();
-              }
-            }
-          };
-        };
+  navigator.serviceWorker.register("/sw.js", { scope: "/" })
+    .then(reg => {
+      console.log("SW Registered");
+
+      if (reg.waiting) {
+        showUpdate(reg);
+      }
+
+      reg.addEventListener("updatefound", () => {
+        const newWorker = reg.installing;
+
+        newWorker.addEventListener("statechange", () => {
+          if (
+            newWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
+            showUpdate(reg);
+          }
+        });
       });
+
+    });
+
+  function showUpdate(reg) {
+    if (confirm("New update available. Reload now?")) {
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+  }
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
   });
+
 }
 </script>
   </body>
