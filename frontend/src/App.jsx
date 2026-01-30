@@ -7,14 +7,14 @@ import {
 } from "react-router-dom";
 
 import { motion } from "framer-motion";
-
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import Navbar from "./components/Navbar.jsx";
 import Loader from "./components/Loader.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
-// Lazy Loaded Pages (Performance Boost)
+// Lazy Loaded Pages
 const Home = lazy(() => import("./pages/Home.jsx"));
 const Register = lazy(() => import("./pages/Register.jsx"));
 const Login = lazy(() => import("./pages/Login.jsx"));
@@ -34,26 +34,91 @@ const ResultQuiz = lazy(() => import("./pages/ResultQuiz.jsx"));
 
 const AppWrapper = () => {
   const location = useLocation();
+
   const [loading, setLoading] = useState(false);
 
+  // PWA Install States
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
+
+  // Page transition loader
   useEffect(() => {
     setLoading(true);
 
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 350); // smooth illusion timing
+    }, 350);
 
     return () => clearTimeout(timer);
   }, [location]);
 
+  // PWA Install Prompt Listener
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstall(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    window.addEventListener("appinstalled", () => {
+      setShowInstall(false);
+      console.log("PWA Installed Successfully");
+    });
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
+  }, []);
+
+  // Install Button Click
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+
+    if (choice.outcome === "accepted") {
+      console.log("User accepted install");
+    }
+
+    setDeferredPrompt(null);
+    setShowInstall(false);
+  };
+
   return (
     <>
-      {/* Navbar stays stable */}
+      {/* Install App Button */}
+      {showInstall && (
+        <button
+          onClick={installApp}
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            padding: "12px 18px",
+            borderRadius: "10px",
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "bold",
+            zIndex: 9999,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          }}
+        >
+          Install App
+        </button>
+      )}
+
+      {/* Navbar */}
       <Navbar />
 
-      {/* Global Loader */}
+      {/* Route Loader */}
       {loading && <Loader type="route" />}
 
+      {/* Toast */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -62,7 +127,7 @@ const AppWrapper = () => {
         theme="light"
       />
 
-      {/* Smooth Page Transition */}
+      {/* Page Animation */}
       <motion.div
         key={location.pathname}
         initial={{ opacity: 0 }}

@@ -17,29 +17,22 @@ if ("serviceWorker" in navigator) {
 
   navigator.serviceWorker.register("/sw.js", { scope: "/" })
     .then(reg => {
-      console.log("SW Registered");
 
-      if (reg.waiting) {
-        showUpdate(reg);
-      }
+      if (reg.waiting) askUpdate(reg);
 
       reg.addEventListener("updatefound", () => {
-        const newWorker = reg.installing;
-
-        newWorker.addEventListener("statechange", () => {
-          if (
-            newWorker.state === "installed" &&
-            navigator.serviceWorker.controller
-          ) {
-            showUpdate(reg);
+        const worker = reg.installing;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            askUpdate(reg);
           }
         });
       });
 
     });
 
-  function showUpdate(reg) {
-    if (confirm("New update available. Reload now?")) {
+  function askUpdate(reg) {
+    if (confirm("Update available. Reload?")) {
       reg.waiting.postMessage({ type: "SKIP_WAITING" });
     }
   }
@@ -47,8 +40,8 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     window.location.reload();
   });
-
 }
 </script>
+
   </body>
 </html>
