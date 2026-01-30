@@ -6,6 +6,13 @@ import { NetworkFirst, CacheFirst } from "workbox-strategies";
 // Precache build files
 precacheAndRoute(self.__WB_MANIFEST);
 
+precacheAndRoute(self.__WB_MANIFEST);
+
+precacheAndRoute([
+  { url: "/icon-192.png", revision: null },
+  { url: "/icon-512.png", revision: null }
+]);
+
 // Cache API
 registerRoute(
   ({ url }) => url.origin.includes("onrender.com"),
