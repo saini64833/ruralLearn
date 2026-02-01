@@ -13,7 +13,7 @@ const Lessons = () => {
   useEffect(() => {
     const fetchLessons = async () => {
       try {
-        getLessons().then(setLessons);
+        // getLessons().then(setLessons);
         const res = await axiosInstance.get("/lessons/get-all-lessons");
         setLessons(res.data?.data || []);
       } catch (err) {

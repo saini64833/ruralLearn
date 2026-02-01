@@ -3,7 +3,9 @@ import { registerRoute, setCatchHandler } from "workbox-routing";
 import { NetworkFirst, CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { clientsClaim } from "workbox-core";
-import { openDB } from "idb";
+importScripts("https://unpkg.com/idb@7/build/iife/index-min.js");
+const { openDB } = idb;
+
 
 // Activate SW immediately
 self.skipWaiting();
