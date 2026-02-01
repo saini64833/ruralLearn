@@ -201,7 +201,7 @@ const Dashboard = () => {
                   ? URL.createObjectURL(newAvatar) // instant preview
                   : userData?.avatar
                   ? `${userData.avatar}?t=${Date.now()}` 
-                  : "https://via.placeholder.com/100"
+                  : "https://www.freepik.com/free-vector/businessman-character-avatar-isolated_6769264.htm#fromView=keyword&page=1&position=3&uuid=ab0d4ee8-f207-43f8-82d8-bedbeb4d3306&query=Default+avatar"
               }
               alt="avatar"
               className={`w-28 h-28 rounded-full border-4 border-indigo-500 shadow object-cover ${
