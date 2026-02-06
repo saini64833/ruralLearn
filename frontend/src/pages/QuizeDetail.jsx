@@ -141,7 +141,7 @@ const QuizeDetail = () => {
 
         {/* Action Buttons */}
         <div className="mt-8 flex gap-4 flex-wrap">
-          {user?.role === "Teacher" && (
+          {user?.role === "Teacher" && user._id===quiz.createdBy?._id&& (
             <button
               onClick={() => navigate(`/quizzes/update-quize/${quiz._id}`)}
               className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
