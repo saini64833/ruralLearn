@@ -284,12 +284,12 @@ const deleteAndUpdateAvatar = asyncHandler(async (req, res) => {
 
   // Upload new avatar
   const uploadedAvatar = await uploadOnCloudinary(req.file.path);
-  if (!uploadedAvatar?.url) {
+  if (!uploadedAvatar?.secure_url) {
     throw new ApiError(500, "Failed to upload new avatar");
   }
 
   // Update user
-  user.avatar = uploadedAvatar.url;
+  user.avatar = uploadedAvatar.secure_url;
   await user.save({ validateBeforeSave: false });
 
   return res
@@ -297,7 +297,7 @@ const deleteAndUpdateAvatar = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { avatar: uploadedAvatar.url },
+        { avatar: uploadedAvatar.secure_url },
         "Avatar updated successfully"
       )
     );
