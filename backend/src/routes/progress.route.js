@@ -11,9 +11,9 @@ import { verifyJwt } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 router.get("/leaderboard", getGlobalLeaderboard);
+router.get("/search", searchStudents);
 router.get("/:quizId", getLeaderBoard);
 router.get("/:quizId/rank", verifyJwt, getUserRank);
-router.get("/search", searchStudents);
 router.get("/user/:userId", getUserPerformance);
 export default router;
 
