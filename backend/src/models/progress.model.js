@@ -33,7 +33,7 @@ progressSchema.methods.calculateOverall = async function () {
   });
 
   const total = results.reduce((sum, r) => sum + r.totalPercentage, 0);
-
+  
   this.overallPercentage = results.length ? total / results.length : 0;
 };
 progressSchema.index({ userId: 1 });

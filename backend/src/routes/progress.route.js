@@ -4,7 +4,7 @@ import {
   getUserRank,
   searchStudents,
   getUserPerformance,
-  getGlobalLeaderboard
+  getGlobalLeaderboard,
 } from "../controllers/progress.controller.js";
 
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -16,4 +16,3 @@ router.get("/:quizId", getLeaderBoard);
 router.get("/:quizId/rank", verifyJwt, getUserRank);
 router.get("/user/:userId", getUserPerformance);
 export default router;
-

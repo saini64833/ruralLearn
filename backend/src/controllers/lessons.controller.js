@@ -3,7 +3,22 @@ import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+} from "../utils/cloudinary.js";
+
+// ✅ Helper to extract Cloudinary public_id from URL
+const extractPublicId = (url, resourceType = "image") => {
+  if (!url) return null;
+  if (resourceType === "raw") {
+    const match = url.match(/\/raw\/upload\/(?:v\d+\/)?(.+)$/);
+    return match ? match[1] : null;
+  }
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
+  return match ? match[1] : null;
+};
+
 const uploadLesson = asyncHandler(async (req, res) => {
   if (req.user.role !== "Teacher")
     throw new ApiError(401, "Only teachers can upload lessons");
@@ -13,22 +28,38 @@ const uploadLesson = asyncHandler(async (req, res) => {
   if ([title, description, language, subject, content].some((f) => !f?.trim()))
     throw new ApiError(400, "All fields are required");
 
-  const lessonTags = Array.isArray(tags) ? tags : tags?.split(",") || [];
-
+  // ✅ Validate files BEFORE any DB/upload operations
   const pdfFiles = req.files?.pdfUrl || [];
+  const videoFiles = req.files?.videoFile || [];
 
   if (pdfFiles.length === 0)
     throw new ApiError(400, "At least one PDF is required");
+  if (videoFiles.length === 0)
+    throw new ApiError(400, "At least one video is required");
 
+  const lessonTags = Array.isArray(tags) ? tags : tags?.split(",") || [];
+
+  // ✅ Upload all PDFs first
   const pdfUrls = [];
   for (const file of pdfFiles) {
     console.log("Uploading PDF:", file.path);
-    const uploadedPdf = await uploadOnCloudinary(file.path, "raw");
+    const uploadedPdf = await uploadOnCloudinary(file.path, "raw"); // "raw" for PDFs
     if (!uploadedPdf?.secure_url)
       throw new ApiError(500, "Failed to upload PDF");
     pdfUrls.push(uploadedPdf.secure_url);
   }
 
+  // ✅ Upload all videos
+  const uploadedVideos = [];
+  for (const file of videoFiles) {
+    console.log("Uploading Video:", file.path);
+    const uploadedVideo = await uploadOnCloudinary(file.path, "video");
+    if (!uploadedVideo?.secure_url)
+      throw new ApiError(500, "Video upload failed");
+    uploadedVideos.push({ file, uploadedVideo });
+  }
+
+  // ✅ Now create lesson only after all uploads succeed
   const lesson = await Lessons.create({
     title,
     description,
@@ -41,17 +72,9 @@ const uploadLesson = asyncHandler(async (req, res) => {
     videos: [],
   });
 
-  const videoFiles = req.files?.videoFile || [];
-  if (videoFiles.length === 0)
-    throw new ApiError(400, "At least one video is required");
-
+  // ✅ Create video documents
   const videoIds = [];
-  for (const file of videoFiles) {
-    console.log("Uploading Video:", file.path);
-    const uploadedVideo = await uploadOnCloudinary(file.path, "video");
-    if (!uploadedVideo?.secure_url)
-      throw new ApiError(500, "Video upload failed");
-
+  for (const { file, uploadedVideo } of uploadedVideos) {
     const videoDoc = await Video.create({
       videoFile: uploadedVideo.secure_url,
       thumbnail: uploadedVideo.thumbnail_url || "",
@@ -60,7 +83,6 @@ const uploadLesson = asyncHandler(async (req, res) => {
       owner: req.user._id,
       lesson: lesson._id,
     });
-
     videoIds.push(videoDoc._id);
   }
 
@@ -82,23 +104,23 @@ const updateLesson = asyncHandler(async (req, res) => {
   if (lesson.createdBy.toString() !== req.user._id.toString())
     throw new ApiError(403, "You cannot update this lesson");
 
-  let newPdfUrls = [];
+  // ✅ Upload new PDFs if provided
   if (req.files?.pdfUrl?.length > 0) {
+    const newPdfUrls = [];
     for (const file of req.files.pdfUrl) {
       const uploadedPdf = await uploadOnCloudinary(file.path, "raw");
       if (uploadedPdf?.secure_url) newPdfUrls.push(uploadedPdf.secure_url);
     }
-
-    if (!Array.isArray(lesson.pdfUrl)) lesson.pdfUrl = [];
-    lesson.pdfUrl = [...lesson.pdfUrl, ...newPdfUrls];
+    lesson.pdfUrl = [...(lesson.pdfUrl || []), ...newPdfUrls];
   }
 
-  let newVideoIds = [];
+  // ✅ Upload new videos if provided
   if (req.files?.videoFile?.length > 0) {
+    const newVideoIds = [];
     for (const file of req.files.videoFile) {
       const uploadedVideo = await uploadOnCloudinary(file.path, "video");
       if (uploadedVideo?.secure_url) {
-        const video = new Video({
+        const videoDoc = await Video.create({
           videoFile: uploadedVideo.secure_url,
           thumbnail: uploadedVideo.thumbnail_url || "",
           title: file.originalname,
@@ -106,13 +128,22 @@ const updateLesson = asyncHandler(async (req, res) => {
           owner: req.user._id,
           lesson: lesson._id,
         });
-        const videoDoc = await video.save();
         newVideoIds.push(videoDoc._id);
       }
     }
+    lesson.videos = [...(lesson.videos || []), ...newVideoIds];
+  }
 
-    if (!Array.isArray(lesson.videos)) lesson.videos = [];
-    lesson.videos = [...lesson.videos, ...newVideoIds];
+  // ✅ Update text fields if provided
+  const fields = ["title", "description", "language", "subject", "content"];
+  fields.forEach((field) => {
+    if (req.body[field]?.trim()) lesson[field] = req.body[field];
+  });
+
+  if (req.body.tags) {
+    lesson.tags = Array.isArray(req.body.tags)
+      ? req.body.tags
+      : req.body.tags.split(",");
   }
 
   await lesson.save();
@@ -127,10 +158,22 @@ const deleteLesson = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Only teachers can delete lessons");
 
   const { id } = req.params;
-  const lesson = await Lessons.findById(id);
+  const lesson = await Lessons.findById(id).populate("videos");
   if (!lesson) throw new ApiError(404, "Lesson not found");
   if (lesson.createdBy.toString() !== req.user._id.toString())
     throw new ApiError(403, "You cannot delete this lesson");
+
+  // ✅ Delete PDFs from Cloudinary
+  for (const pdfUrl of lesson.pdfUrl || []) {
+    const publicId = extractPublicId(pdfUrl, "raw");
+    if (publicId) await deleteFromCloudinary(publicId);
+  }
+
+  // ✅ Delete videos from Cloudinary
+  for (const video of lesson.videos || []) {
+    const publicId = extractPublicId(video.videoFile, "video");
+    if (publicId) await deleteFromCloudinary(publicId);
+  }
 
   await Video.deleteMany({ lesson: lesson._id });
   await Lessons.findByIdAndDelete(id);
@@ -173,7 +216,7 @@ const likeLesson = asyncHandler(async (req, res) => {
 const getAllLessons = asyncHandler(async (req, res) => {
   const lessons = await Lessons.find()
     .populate("videos")
-    .populate("createdBy", "name email");
+    .populate("createdBy", "fullName email avatar");
   if (!lessons?.length) throw new ApiError(404, "No lessons found");
   res
     .status(200)
@@ -184,7 +227,7 @@ const getLessonById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const lesson = await Lessons.findById(id)
     .populate("videos")
-    .populate("createdBy", "name email");
+    .populate("createdBy", "fullName email avatar");
   if (!lesson) throw new ApiError(404, "Lesson not found");
 
   res

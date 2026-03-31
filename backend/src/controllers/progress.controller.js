@@ -212,7 +212,6 @@ const getGlobalLeaderboard = asyncHandler(async (req, res) => {
   ]);
 
   const total = totalUsers[0]?.total || 0;
-
   const leaderboard = await QuizeResult.aggregate([
     {
       $group: {
@@ -252,12 +251,10 @@ const getGlobalLeaderboard = asyncHandler(async (req, res) => {
     { $skip: skip },
     { $limit: limit },
   ]);
-
   const data = leaderboard.map((item, index) => ({
     rank: skip + index + 1,
     ...item,
   }));
-
   return res.status(200).json(
     new ApiResponse(
       200,
