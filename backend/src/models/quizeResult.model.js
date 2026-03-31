@@ -61,5 +61,6 @@ quizeResultSchema.pre("save", function (next) {
   }
   next();
 });
-
+quizeResultSchema.index({ quizId: 1, totalScore: -1 });
+quizeResultSchema.index({ studentId: 1 });
 export const QuizeResult = mongoose.model("QuizeResult", quizeResultSchema);
